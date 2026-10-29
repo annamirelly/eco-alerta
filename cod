@@ -1,0 +1,320 @@
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoAlerta (GreenPulse) - Plataforma de Monitoramento Ambiental</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans antialiased flex flex-col md:flex-row">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none"></div>
+
+    <!-- Sidebar / Mobile Navigation -->
+    <aside class="w-full md:w-64 bg-slate-950 border-r border-slate-800 p-4 flex flex-col justify-between shrink-0">
+        <div>
+            <!-- App Logo -->
+            <div class="flex items-center gap-3 px-2 py-3 border-b border-slate-800 mb-6">
+                <div class="bg-brand-500/20 p-2.5 rounded-xl text-brand-500 border border-brand-500/30">
+                    <i class="fa-solid font-bold fa-leaf text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-none text-white tracking-wide">EcoAlerta</h1>
+                    <span class="text-xs text-brand-500 font-medium">GreenPulse Engine v2.4</span>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="space-y-1.5">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-900">
+                    <i class="fa-solid fa-chart-line w-5"></i>
+                    <span>Painel Principal</span>
+                </button>
+                <button onclick="switchTab('incidents')" id="nav-incidents" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-900">
+                    <i class="fa-solid fa-triangle-exclamation w-5"></i>
+                    <span>Ocorrências</span>
+                    <span id="badge-count" class="ml-auto bg-brand-500/20 text-brand-400 text-xs px-2 py-0.5 rounded-full border border-brand-500/30">0</span>
+                </button>
+                <button onclick="switchTab('new-report')" id="nav-new-report" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-900">
+                    <i class="fa-solid fa-circle-plus w-5"></i>
+                    <span>Nova Denúncia (ML)</span>
+                </button>
+                <button onclick="switchTab('air-api')" id="nav-air-api" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-900">
+                    <i class="fa-solid fa-wind w-5"></i>
+                    <span>API Clima & Ar</span>
+                </button>
+                <button onclick="switchTab('ml-metrics')" id="nav-ml-metrics" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-900">
+                    <i class="fa-solid fa-brain w-5"></i>
+                    <span>Métricas de ML</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- Sidebar Footer -->
+        <div class="mt-6 pt-4 border-t border-slate-800/80 px-2 text-xs text-slate-500">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="relative flex h-2 w-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span class="text-slate-400 font-medium">Serviço de Segundo Plano</span>
+            </div>
+            <p>Open-Meteo Integration Active</p>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 p-4 md:p-8 overflow-y-auto max-h-screen custom-scrollbar">
+
+        <!-- Top Header Bar -->
+        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-4 border-b border-slate-800">
+            <div>
+                <h2 id="page-title" class="text-2xl font-bold text-white tracking-tight">Painel de Monitoramento</h2>
+                <p id="page-subtitle" class="text-sm text-slate-400">Visão geral em tempo real e indicadores do modelo de Inteligência Artificial.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="triggerBackgroundCheck()" class="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-2 transition-all border border-slate-700">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                    <span>Simular Varredura BG</span>
+                </button>
+                <button onclick="resetData()" class="px-3.5 py-2 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-400 text-xs font-semibold flex items-center gap-2 transition-all border border-red-800/40">
+                    <i class="fa-solid fa-trash-arrow-up"></i>
+                    <span>Resetar Dados</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- TAB 1: DASHBOARD -->
+        <div id="tab-dashboard" class="tab-content space-y-6">
+            <!-- Summary Stats -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-slate-800/60 border border-slate-700/60 p-4 rounded-xl">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider">Total de Registos</span>
+                        <i class="fa-solid fa-folder-open text-brand-400"></i>
+                    </div>
+                    <div class="text-2xl font-bold text-white" id="stat-total">0</div>
+                    <span class="text-xs text-slate-400">Armazenados localmente</span>
+                </div>
+                <div class="bg-slate-800/60 border border-slate-700/60 p-4 rounded-xl">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider">Acurácia do Modelo</span>
+                        <i class="fa-solid fa-bullseye text-emerald-400"></i>
+                    </div>
+                    <div class="text-2xl font-bold text-emerald-400">92.4%</div>
+                    <span class="text-xs text-emerald-500/90 font-medium"><i class="fa-solid fa-check"></i> Meta (>85%) atingida</span>
+                </div>
+                <div class="bg-slate-800/60 border border-slate-700/60 p-4 rounded-xl">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider">Qualidade do Ar (AQI)</span>
+                        <i class="fa-solid fa-smog text-amber-400"></i>
+                    </div>
+                    <div class="text-2xl font-bold text-white" id="stat-aqi">--</div>
+                    <span class="text-xs text-slate-400" id="stat-aqi-status">Carregando via API...</span>
+                </div>
+                <div class="bg-slate-800/60 border border-slate-700/60 p-4 rounded-xl">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider">Alertas Críticos</span>
+                        <i class="fa-solid fa-bell text-rose-400"></i>
+                    </div>
+                    <div class="text-2xl font-bold text-rose-400" id="stat-critical">0</div>
+                    <span class="text-xs text-slate-400">Incidentes de alto risco</span>
+                </div>
+            </div>
+
+            <!-- Dashboard Visualizations -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-slate-800/40 border border-slate-800 p-5 rounded-2xl">
+                    <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-area text-brand-400"></i>
+                        Evolução Semanal de Ocorrências e Previsões
+                    </h3>
+                    <div class="h-64">
+                        <canvas id="overviewChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-slate-800/40 border border-slate-800 p-5 rounded-2xl flex flex-col">
+                    <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-pie-chart text-brand-400"></i>
+                        Distribuição de Severidade ML
+                    </h3>
+                    <div class="h-64 flex items-center justify-center">
+                        <canvas id="severityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Recent Incidents Table -->
+            <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-brand-400"></i>
+                        Últimos Registos
+                    </h3>
+                    <button onclick="switchTab('incidents')" class="text-xs text-brand-400 hover:text-brand-300 font-semibold">Ver Todos &rarr;</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-300">
+                        <thead class="bg-slate-900/80 text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                            <tr>
+                                <th class="p-3">Categoria</th>
+                                <th class="p-3">Localização</th>
+                                <th class="p-3">Score Risco (ML)</th>
+                                <th class="p-3">Severidade</th>
+                                <th class="p-3">Data</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-incidents-tbody" class="divide-y divide-slate-800">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: INCIDENTS LIST -->
+        <div id="tab-incidents" class="tab-content hidden space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/40 p-4 rounded-xl border border-slate-800">
+                <div class="relative w-full sm:w-72">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-500 text-sm"></i>
+                    <input type="text" id="search-incidents" oninput="renderIncidents()" placeholder="Buscar por título ou local..." class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-brand-500">
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <label class="text-xs text-slate-400 whitespace-nowrap">Filtrar por Severidade:</label>
+                    <select id="filter-severity" onchange="renderIncidents()" class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg p-2 focus:outline-none focus:border-brand-500 w-full sm:w-auto">
+                        <option value="ALL">Todas</option>
+                        <option value="Crítico">Crítico</option>
+                        <option value="Alto">Alto</option>
+                        <option value="Médio">Médio</option>
+                        <option value="Baixo">Baixo</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Incidents Cards Container -->
+            <div id="incidents-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Cards injected dynamically -->
+            </div>
+        </div>
+
+        <!-- TAB 3: NEW REPORT FORM (WITH ML ENGINE) -->
+        <div id="tab-new-report" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                <!-- Form Section -->
+                <div class="lg:col-span-2 bg-slate-800/40 border border-slate-800 p-6 rounded-2xl">
+                    <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-file-circle-plus text-brand-400"></i>
+                        Registar Ocorrência Ambiental
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-6">Preencha os dados do evento. O modelo de Machine Learning irá processar e calcular o nível de severidade e risco em tempo real.</p>
+
+                    <form id="report-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-300 mb-1">Título do Evento</label>
+                            <input type="text" id="form-title" required placeholder="Ex: Descarte ilegal de resíduos químicos no rio" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-brand-500">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-300 mb-1">Categoria</label>
+                                <select id="form-category" onchange="runLiveMLAnalysis()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-brand-500">
+                                    <option value="Poluição Hídrica">Poluição Hídrica</option>
+                                    <option value="Descarte Irregular">Descarte Irregular de Lixo</option>
+                                    <option value="Desmatamento">Desmatamento / Queimada</option>
+                                    <option value="Poluição Atmosférica">Poluição Atmosférica</option>
+                                    <option value="Contaminação do Solo">Contaminação do Solo</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-300 mb-1">Localização / Cidade</label>
+                                <input type="text" id="form-location" required placeholder="Ex: Zona Industrial - São Paulo, SP" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-brand-500">
+                            </div>
+                        </div>
+
+                        <!-- ML Feature Inputs -->
+                        <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-4">
+                            <h4 class="text-xs font-bold uppercase text-brand-400 tracking-wider">Atributos para Inferência de ML</h4>
+
+                            <div>
+                                <div class="flex justify-between text-xs text-slate-300 mb-1">
+                                    <span>Área Afetada (m² Estimados):</span>
+                                    <span id="val-area" class="font-bold text-brand-400">500 m²</span>
+                                </div>
+                                <input type="range" id="form-area" min="10" max="10000" step="50" value="500" oninput="updateRangeLabel('val-area', this.value + ' m²'); runLiveMLAnalysis()" class="w-full accent-brand-500">
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-xs text-slate-300 mb-1">
+                                    <span>Proximidade de População/Fontes de Água (km):</span>
+                                    <span id="val-proximity" class="font-bold text-brand-400">1.5 km</span>
+                                </div>
+                                <input type="range" id="form-proximity" min="0.1" max="20" step="0.1" value="1.5" oninput="updateRangeLabel('val-proximity', this.value + ' km'); runLiveMLAnalysis()" class="w-full accent-brand-500">
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-xs text-slate-300 mb-1">
+                                    <span>Nível de Toxicidade Recorrente (1 a 10):</span>
+                                    <span id="val-toxicity" class="font-bold text-brand-400">6</span>
+                                </div>
+                                <input type="range" id="form-toxicity" min="1" max="10" value="6" oninput="updateRangeLabel('val-toxicity', this.value); runLiveMLAnalysis()" class="w-full accent-brand-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-300 mb-1">Descrição Detalhada</label>
+                            <textarea id="form-description" rows="3" placeholder="Descreva os detalhes observados no local..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-brand-500"></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-brand-900/30 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            <span>Submeter Denúncia & Salvar</span>
+                        </button>
+                    </form>
+                </div>
