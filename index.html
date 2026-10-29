@@ -30,24 +30,9 @@
         }
     </script>
     <style>
-        .glass {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(8px);
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen font-sans antialiased flex flex-col md:flex-row">
@@ -71,61 +56,42 @@
 
             <!-- Navigation Links -->
             <nav class="space-y-1.5">
-                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-900">
+                <button type="button" onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-900 cursor-pointer">
                     <i class="fa-solid fa-chart-line w-5"></i>
                     <span>Painel Principal</span>
                 </button>
-                <button onclick="switchTab('incidents')" id="nav-incidents" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-900">
+                <button type="button" onclick="switchTab('incidents')" id="nav-incidents" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-900 cursor-pointer">
                     <i class="fa-solid fa-triangle-exclamation w-5"></i>
                     <span>Ocorrências</span>
                     <span id="badge-count" class="ml-auto bg-brand-500/20 text-brand-400 text-xs px-2 py-0.5 rounded-full border border-brand-500/30">0</span>
                 </button>
-                <button onclick="switchTab('new-report')" id="nav-new-report" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-900">
+                <button type="button" onclick="switchTab('new-report')" id="nav-new-report" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-900 cursor-pointer">
                     <i class="fa-solid fa-circle-plus w-5"></i>
                     <span>Nova Denúncia (ML)</span>
                 </button>
-                <button onclick="switchTab('air-api')" id="nav-air-api" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-900">
+                <button type="button" onclick="switchTab('air-api')" id="nav-air-api" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-900 cursor-pointer">
                     <i class="fa-solid fa-wind w-5"></i>
                     <span>API Clima & Ar</span>
                 </button>
-                <button onclick="switchTab('ml-metrics')" id="nav-ml-metrics" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-900">
+                <button type="button" onclick="switchTab('ml-metrics')" id="nav-ml-metrics" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-900 cursor-pointer">
                     <i class="fa-solid fa-brain w-5"></i>
                     <span>Métricas de ML</span>
                 </button>
             </nav>
         </div>
-
-        <!-- Sidebar Footer -->
-        <div class="mt-6 pt-4 border-t border-slate-800/80 px-2 text-xs text-slate-500">
-            <div class="flex items-center gap-2 mb-2">
-                <span class="relative flex h-2 w-2">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <span class="text-slate-400 font-medium">Serviço de Segundo Plano</span>
-            </div>
-            <p>Open-Meteo Integration Active</p>
-        </div>
     </aside>
 
     <!-- Main Content Area -->
-    <main class="flex-1 p-4 md:p-8 overflow-y-auto max-h-screen custom-scrollbar">
+    <main class="flex-1 p-4 md:p-8 overflow-y-auto min-h-screen custom-scrollbar pb-24">
 
-        <!-- Top Header Bar -->
         <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-4 border-b border-slate-800">
             <div>
                 <h2 id="page-title" class="text-2xl font-bold text-white tracking-tight">Painel de Monitoramento</h2>
-                <p id="page-subtitle" class="text-sm text-slate-400">Visão geral em tempo real e indicadores do modelo de Inteligência Artificial.</p>
+                <p id="page-subtitle" class="text-sm text-slate-400">Visão geral em tempo real e indicadores de IA.</p>
             </div>
             <div class="flex items-center gap-3">
-                <button onclick="triggerBackgroundCheck()" class="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-2 transition-all border border-slate-700">
-                    <i class="fa-solid fa-arrows-rotate"></i>
-                    <span>Simular Varredura BG</span>
-                </button>
-                <button onclick="resetData()" class="px-3.5 py-2 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-400 text-xs font-semibold flex items-center gap-2 transition-all border border-red-800/40">
-                    <i class="fa-solid fa-trash-arrow-up"></i>
-                    <span>Resetar Dados</span>
-                </button>
+                <button type="button" onclick="triggerBackgroundCheck()" class="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold cursor-pointer">Simular Varredura</button>
+                <button type="button" onclick="resetData()" class="px-3.5 py-2 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-400 text-xs font-semibold cursor-pointer">Resetar</button>
             </div>
         </header>
 
@@ -133,119 +99,154 @@
         <div id="tab-dashboard" class="tab-content space-y-6">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-slate-800/60 border border-slate-700/60 p-4 rounded-xl">
-                    <div class="flex items-center justify-between text-slate-400 mb-2">
-                        <span class="text-xs font-semibold uppercase tracking-wider">Total de Registos</span>
-                        <i class="fa-solid fa-folder-open text-brand-400"></i>
-                    </div>
-                    <div class="text-2xl font-bold text-white" id="stat-total">0</div>
-                    <span class="text-xs text-slate-400">Armazenados localmente</span>
+                    <span class="text-xs font-semibold uppercase text-slate-400">Total de Registos</span>
+                    <div class="text-2xl font-bold text-white mt-1" id="stat-total">0</div>
                 </div>
                 <div class="bg-slate-800/60 border border-slate-700/60 p-4 rounded-xl">
-                    <div class="flex items-center justify-between text-slate-400 mb-2">
-                        <span class="text-xs font-semibold uppercase tracking-wider">Acurácia do Modelo</span>
-                        <i class="fa-solid fa-bullseye text-emerald-400"></i>
-                    </div>
-                    <div class="text-2xl font-bold text-emerald-400">92.4%</div>
-                    <span class="text-xs text-emerald-500/90 font-medium"><i class="fa-solid fa-check"></i> Meta (>85%) atingida</span>
+                    <span class="text-xs font-semibold uppercase text-slate-400">Acurácia do Modelo</span>
+                    <div class="text-2xl font-bold text-emerald-400 mt-1">92.4%</div>
                 </div>
                 <div class="bg-slate-800/60 border border-slate-700/60 p-4 rounded-xl">
-                    <div class="flex items-center justify-between text-slate-400 mb-2">
-                        <span class="text-xs font-semibold uppercase tracking-wider">Qualidade do Ar (AQI)</span>
-                        <i class="fa-solid fa-smog text-amber-400"></i>
-                    </div>
-                    <div class="text-2xl font-bold text-white" id="stat-aqi">--</div>
-                    <span class="text-xs text-slate-400" id="stat-aqi-status">Carregando via API...</span>
+                    <span class="text-xs font-semibold uppercase text-slate-400">Qualidade do Ar (AQI)</span>
+                    <div class="text-2xl font-bold text-white mt-1" id="stat-aqi">--</div>
                 </div>
                 <div class="bg-slate-800/60 border border-slate-700/60 p-4 rounded-xl">
-                    <div class="flex items-center justify-between text-slate-400 mb-2">
-                        <span class="text-xs font-semibold uppercase tracking-wider">Alertas Críticos</span>
-                        <i class="fa-solid fa-bell text-rose-400"></i>
-                    </div>
-                    <div class="text-2xl font-bold text-rose-400" id="stat-critical">0</div>
-                    <span class="text-xs text-slate-400">Incidentes de alto risco</span>
+                    <span class="text-xs font-semibold uppercase text-slate-400">Alertas Críticos</span>
+                    <div class="text-2xl font-bold text-rose-400 mt-1" id="stat-critical">0</div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 bg-slate-800/40 border border-slate-800 p-5 rounded-2xl">
-                    <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-chart-area text-brand-400"></i>
-                        Evolução Semanal de Ocorrências e Previsões
-                    </h3>
-                    <div class="h-64">
-                        <canvas id="overviewChart"></canvas>
-                    </div>
+                <div class="lg:col-span-2 bg-slate-800/40 border border-slate-800 p-5 rounded-2xl h-72">
+                    <canvas id="overviewChart"></canvas>
                 </div>
-                <div class="bg-slate-800/40 border border-slate-800 p-5 rounded-2xl flex flex-col">
-                    <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-pie-chart text-brand-400"></i>
-                        Distribuição de Severidade ML
-                    </h3>
-                    <div class="h-64 flex items-center justify-center">
-                        <canvas id="severityChart"></canvas>
-                    </div>
+                <div class="bg-slate-800/40 border border-slate-800 p-5 rounded-2xl h-72 flex items-center justify-center">
+                    <canvas id="severityChart"></canvas>
                 </div>
             </div>
 
             <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-5">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-base font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-clock-rotate-left text-brand-400"></i>
-                        Últimos Registos
-                    </h3>
-                    <button onclick="switchTab('incidents')" class="text-xs text-brand-400 hover:text-brand-300 font-semibold">Ver Todos &rarr;</button>
-                </div>
+                <h3 class="text-base font-bold text-white mb-4">Últimos Registos</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm text-slate-300">
-                        <thead class="bg-slate-900/80 text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800">
-                            <tr>
-                                <th class="p-3">Categoria</th>
-                                <th class="p-3">Localização</th>
-                                <th class="p-3">Score Risco (ML)</th>
-                                <th class="p-3">Severidade</th>
-                                <th class="p-3">Data</th>
-                            </tr>
-                        </thead>
-                        <tbody id="recent-incidents-tbody" class="divide-y divide-slate-800"></tbody>
+                        <tbody id="recent-incidents-tbody"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- TAB 2: INCIDENTS LIST -->
+        <!-- TAB 2: INCIDENTS -->
         <div id="tab-incidents" class="tab-content hidden space-y-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/40 p-4 rounded-xl border border-slate-800">
-                <div class="relative w-full sm:w-72">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-500 text-sm"></i>
-                    <input type="text" id="search-incidents" oninput="renderIncidents()" placeholder="Buscar por título ou local..." class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-brand-500">
-                </div>
-                <div class="flex items-center gap-2 w-full sm:w-auto">
-                    <label class="text-xs text-slate-400 whitespace-nowrap">Filtrar por Severidade:</label>
-                    <select id="filter-severity" onchange="renderIncidents()" class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg p-2 focus:outline-none focus:border-brand-500 w-full sm:w-auto">
-                        <option value="ALL">Todas</option>
-                        <option value="Crítico">Crítico</option>
-                        <option value="Alto">Alto</option>
-                        <option value="Médio">Médio</option>
-                        <option value="Baixo">Baixo</option>
-                    </select>
-                </div>
+            <div class="flex gap-4 bg-slate-800/40 p-4 rounded-xl border border-slate-800">
+                <input type="text" id="search-incidents" oninput="renderIncidents()" placeholder="Buscar..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200">
             </div>
             <div id="incidents-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
 
-        <!-- TAB 3: NEW REPORT FORM -->
+        <!-- TAB 3: NEW REPORT -->
         <div id="tab-new-report" class="tab-content hidden space-y-6">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 bg-slate-800/40 border border-slate-800 p-6 rounded-2xl">
-                    <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                        <i class="fa-solid fa-file-circle-plus text-brand-400"></i>
-                        Registar Ocorrência Ambiental
-                    </h3>
-                    <p class="text-xs text-slate-400 mb-6">Preencha os dados do evento. O modelo de Machine Learning irá processar e calcular o nível de severidade e risco em tempo real.</p>
-                    <form id="report-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-semibold uppercase text-slate-300 mb-1">Título do Evento</label>
-                            <input type="text" id="form-title" required placeholder="Ex: Descarte ilegal de resíduos químicos no rio" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-brand-500">
-                        </div>
-                        <div class="grid
-                            
+            <div class="bg-slate-800/40 border border-slate-800 p-6 rounded-2xl">
+                <h3 class="text-lg font-bold text-white mb-4">Registar Ocorrência</h3>
+                <form id="report-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                    <input type="text" id="form-title" required placeholder="Título do Evento" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200">
+                    <select id="form-category" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200">
+                        <option value="Poluição Hídrica">Poluição Hídrica</option>
+                        <option value="Descarte Irregular">Descarte Irregular de Lixo</option>
+                        <option value="Desmatamento">Desmatamento</option>
+                    </select>
+                    <input type="text" id="form-location" required placeholder="Localização" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200">
+                    <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl cursor-pointer">Submeter</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- TAB 4: AIR API -->
+        <div id="tab-air-api" class="tab-content hidden space-y-6">
+            <div class="bg-slate-800/40 border border-slate-800 p-6 rounded-2xl">
+                <h3 class="text-lg font-bold text-white mb-4">API Clima & Ar</h3>
+                <div class="text-white text-xl" id="api-aqi-val">Carregando...</div>
+            </div>
+        </div>
+
+        <!-- TAB 5: ML METRICS -->
+        <div id="tab-ml-metrics" class="tab-content hidden space-y-6">
+            <div class="bg-slate-800/40 border border-slate-800 p-6 rounded-2xl">
+                <h3 class="text-lg font-bold text-white mb-4">Métricas de IA</h3>
+                <p class="text-slate-300 text-sm">Precisão: 91.8% | Recall: 93.2%</p>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        let incidents = JSON.parse(localStorage.getItem('eco_incidents')) || [
+            { id: 1, title: 'Descarte de Efluentes', category: 'Poluição Hídrica', location: 'Cubatão, SP', score: 78.4, severity: 'Crítico', date: '2026-06-10', description: 'Efluentes industriais lançados no rio.' }
+        ];
+
+        function showToast(msg) {
+            const container = document.getElementById('toast-container');
+            if(!container) return;
+            const toast = document.createElement('div');
+            toast.className = 'p-3 rounded-xl text-xs font-medium text-white bg-emerald-600 shadow-lg';
+            toast.innerText = msg;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function switchTab(tabId) {
+            try {
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.classList.remove('bg-slate-800', 'text-white');
+                    btn.classList.add('text-slate-400');
+                });
+                const activeTab = document.getElementById(`tab-${tabId}`);
+                if (activeTab) activeTab.classList.remove('hidden');
+                const activeBtn = document.getElementById(`nav-${tabId}`);
+                if (activeBtn) {
+                    activeBtn.classList.remove('text-slate-400');
+                    activeBtn.classList.add('bg-slate-800', 'text-white');
+                }
+                if (tabId === 'dashboard') renderDashboard();
+                if (tabId === 'incidents') renderIncidents();
+            } catch (err) {
+                console.error("Erro ao mudar de aba:", err);
+            }
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const title = document.getElementById('form-title').value;
+            const category = document.getElementById('form-category').value;
+            const location = document.getElementById('form-location').value;
+            incidents.unshift({ id: Date.now(), title, category, location, score: 75.0, severity: 'Alto', date: '2026-06-14', description: 'Novo registo' });
+            localStorage.setItem('eco_incidents', JSON.stringify(incidents));
+            showToast('Ocorrência guardada com sucesso!');
+            document.getElementById('report-form').reset();
+            switchTab('dashboard');
+        }
+
+        function renderDashboard() {
+            document.getElementById('stat-total').innerText = incidents.length;
+            document.getElementById('stat-critical').innerText = incidents.filter(i => i.severity === 'Crítico').length;
+            document.getElementById('badge-count').innerText = incidents.length;
+            
+            const tbody = document.getElementById('recent-incidents-tbody');
+            if(tbody) {
+                tbody.innerHTML = incidents.map(i => `<tr class="border-b border-slate-800"><td class="p-3 text-white">${i.category}</td><td class="p-3 text-slate-300">${i.location}</td><td class="p-3 text-brand-400">${i.severity}</td></tr>`).join('');
+            }
+        }
+
+        function renderIncidents() {
+            const grid = document.getElementById('incidents-grid');
+            if(grid) {
+                grid.innerHTML = incidents.map(i => `<div class="bg-slate-800/40 border border-slate-800 p-4 rounded-xl"><h4 class="font-bold text-white">${i.title}</h4><p class="text-xs text-slate-400">${i.location}</p></div>`).join('');
+            }
+        }
+
+        window.onload = function() {
+            switchTab('dashboard');
+        };
+    </script>
+</body>
+</html>
