@@ -9,7 +9,7 @@
 ---
 
 ## 📌 1. Visão Geral e Objetivo
-O objetivo deste trabalho é projetar, documentar, implementar e testar uma solução de software baseada em Machine Learning que resolva um problema real com impacto social positivo na área de monitoramento ambiental urbano[span_2](st
+O objetivo deste trabalho é projetar, documentar, implementar e testar uma solução de software baseada em Machine Learning que resolva um problema real com impacto social positivo na área de monitoramento ambiental urbano
 
 ## 🛠️ 2. Requisitos da Entrega da Solução (Sistema Funcional)
 * **Código-Fonte e Repositório:** Repositório organizado com instrução clara de execução no arquivo `README.md`
