@@ -23,5 +23,4 @@ O objetivo deste trabalho é projetar, documentar, implementar e testar uma solu
 ## 🚀 3. Instruções de Execução
 1. Faça o clone deste repositório:
    ```bash
-   git clone [https://github.com/annamirelly/eco-alerta.git](https://github.com/annamirelly/eco-alerta.git)
-   
+   git clone [https://annamirelly.github.io/eco-alerta/]
