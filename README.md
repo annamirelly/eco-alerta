@@ -5,7 +5,7 @@
 * **Lara Ellen** – Matrícula: 01808725
 * **Lucas Luiz Lima de Almeida** – Matrícula: 01804158
 * **João Marcos Rodrigues de Melo** – Matrícula: 01786534
-* **Arthur Moraes de Souza** - 01866154
+* **Arthur Moraes de Souza** - Matrícula: 01866154
 ---
 
 ## 📌 1. Visão Geral e Objetivo
