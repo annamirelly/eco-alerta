@@ -1,362 +1,203 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoAlerta - GreenPulse Engine v2.4</title>
-    <!-- Tailwind CSS CDN -->
+    <title>EcoAlerta - Painel de Monitoramento</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js para Gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
-                            900: '#14532d',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        /* Estilização customizada de scrollbar e transições */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #1f2937;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #374151;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #4b5563;
-        }
-    </style>
 </head>
-<body class="bg-gray-900 text-gray-100 font-sans min-h-screen flex flex-col md:flex-row antialiased">
+<body class="bg-slate-900 text-slate-100 font-sans antialiased min-h-screen flex flex-col md:flex-row">
 
-    <!-- BARRA LATERAL / SIDEBAR -->
-    <aside class="w-full md:w-64 bg-gray-950 border-b md:border-b-0 md:border-r border-gray-800 flex-shrink-0">
-        <div class="p-5 flex items-center justify-between md:justify-start space-x-3 border-b border-gray-800">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-gray-950 text-xl font-bold shadow-lg shadow-emerald-500/20">
-                <i class="fa-solid me-0 fa-leaf"></i>
-            </div>
-            <div>
-                <h1 class="font-bold text-lg leading-tight tracking-wide text-white">EcoAlerta</h1>
-                <p class="text-xs text-emerald-400 font-medium">GreenPulse Engine v2.4</p>
-            </div>
-        </div>
-
-        <nav class="p-4 space-y-1">
-            <a href="#dashboard" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-500/10 text-emerald-400 font-medium transition-all">
-                <i class="fa-solid fa-chart-pie w-5"></i>
-                <span>Painel Principal</span>
-            </a>
-            <a href="#nova-denuncia" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800 hover:text-gray-200 font-medium transition-all">
-                <i class="fa-solid fa-triangle-exclamation w-5"></i>
-                <span>Registrar Denúncia</span>
-            </a>
-            <a href="#tabela-ocorrencias" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800 hover:text-gray-200 font-medium transition-all">
-                <i class="fa-solid fa-[#000] fa-list-check w-5"></i>
-                <span>Histórico de Ocorrências</span>
-            </a>
-        </nav>
-
-        <div class="p-4 mt-auto border-t border-gray-800 hidden md:block">
-            <div class="bg-gray-900/80 p-3.5 rounded-xl border border-gray-800 text-xs text-gray-400 space-y-2">
-                <div class="flex items-center justify-between">
-                    <span class="flex items-center gap-1.5 text-emerald-400 font-medium">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Sistema Ativo
-                    </span>
-                    <span>v2.4.0</span>
+    <!-- MENU LATERAL -->
+    <aside class="w-full md:w-64 bg-slate-800 border-r border-slate-700 p-6 flex flex-col justify-between">
+        <div>
+            <div class="flex items-center gap-3 mb-8">
+                <div class="bg-emerald-500 p-2 rounded-lg text-slate-900 font-bold">🌿</div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-wide">EcoAlerta</h1>
+                    <span class="text-xs text-emerald-400">GreenPulse Engine v2.4</span>
                 </div>
-                <p class="text-[11px] text-gray-500">Monitoramento preditivo e cálculo automatizado de severidade ambiental.</p>
             </div>
+            <nav class="space-y-2">
+                <a href="#" class="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-emerald-600 text-white font-medium">📊 Dashboard</a>
+                <a href="#registrar" class="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 text-slate-300 transition">⚠️ Nova Ocorrência</a>
+            </nav>
+        </div>
+        <div class="text-xs text-slate-500 mt-6 pt-4 border-t border-slate-700">
+            Sistema de Monitoramento Ambiental & IA
         </div>
     </aside>
 
     <!-- CONTEÚDO PRINCIPAL -->
-    <main class="flex-1 p-4 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full space-y-8">
-        
-        <!-- CABEÇALHO SUPERIOR -->
-        <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-gray-800">
+    <main class="flex-1 p-6 md:p-10 overflow-y-auto">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
-                <h2 class="text-2xl font-bold text-white tracking-tight">Painel de Monitoramento Ambiental</h2>
-                <p class="text-sm text-gray-400">Acompanhamento e classificação inteligente de ocorrências em tempo real</p>
+                <h2 class="text-2xl font-bold text-white">Painel de Monitoramento</h2>
+                <p class="text-sm text-slate-400">Visão geral em tempo real e indicadores de IA.</p>
             </div>
-            <div class="flex items-center gap-3">
-                <span class="bg-gray-800 text-gray-300 px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-700 flex items-center gap-2">
-                    <i class="fa-solid fa-cloud-sun text-amber-400"></i> API Clima: <span text-emerald-400 id="clima-status">Online (28°C / AQI 42 - Bom)</span>
-                </span>
+            <div id="status-api" class="bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg text-xs text-emerald-400">
+                🟢 API Conectada
             </div>
         </header>
 
-        <!-- CARTÕES DE ESTATÍSTICAS (KPIs) -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- Card 1: Total Registros -->
-            <div class="bg-gray-800/60 border border-gray-700/60 rounded-2xl p-5 relative overflow-hidden shadow-sm">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wider text-gray-400">Total de Registros</p>
-                        <h3 class="text-3xl font-extrabold text-white mt-1" id="kpi-total">0</h3>
-                    </div>
-                    <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl">
-                        <i class="fa-solid fa-folder-open"></i>
-                    </div>
-                </div>
-                <p class="text-xs text-gray-400 mt-3 flex items-center gap-1">
-                    <i class="fa-solid fa-database text-blue-400"></i> Atualizado dinamicamente
-                </p>
+        <!-- CARTÕES DE INDICADORES -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl shadow-sm">
+                <span class="text-xs text-slate-400 font-medium">Total de Registros</span>
+                <div id="card-total" class="text-3xl font-bold text-white mt-2">0</div>
             </div>
-
-            <!-- Card 2: Alertas Críticos (Calculado Automático) -->
-            <div class="bg-gray-800/60 border border-gray-700/60 rounded-2xl p-5 relative overflow-hidden shadow-sm">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wider text-gray-400">Alertas Críticos</p>
-                        <h3 class="text-3xl font-extrabold text-rose-500 mt-1" id="kpi-criticos">0</h3>
-                    </div>
-                    <div class="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center text-xl">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                    </div>
-                </div>
-                <p class="text-xs text-rose-400/90 mt-3 flex items-center gap-1">
-                    <i class="fa-solid fa-circle-exclamation"></i> Requerem intervenção urgente
-                </p>
+            <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl shadow-sm">
+                <span class="text-xs text-slate-400 font-medium">Acurácia do Modelo</span>
+                <div class="text-3xl font-bold text-emerald-400 mt-2">92.4%</div>
             </div>
-
-            <!-- Card 3: Acurácia da IA -->
-            <div class="bg-gray-800/60 border border-gray-700/60 rounded-2xl p-5 relative overflow-hidden shadow-sm">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wider text-gray-400">Acurácia IA</p>
-                        <h3 class="text-3xl font-extrabold text-emerald-400 mt-1">96.4%</h3>
-                    </div>
-                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl">
-                        <i class="fa-solid fa-microchip"></i>
-                    </div>
-                </div>
-                <p class="text-xs text-emerald-400/90 mt-3 flex items-center gap-1">
-                    <i class="fa-solid fa-check"></i> Modelo de triagem automática
-                </p>
+            <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl shadow-sm">
+                <span class="text-xs text-slate-400 font-medium">Qualidade do Ar (AQI)</span>
+                <div class="text-3xl font-bold text-blue-400 mt-2">Bom (34)</div>
             </div>
-
-            <!-- Card 4: Qualidade do Ar (AQI) -->
-            <div class="bg-gray-800/60 border border-gray-700/60 rounded-2xl p-5 relative overflow-hidden shadow-sm">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wider text-gray-400">Qualidade do Ar (AQI)</p>
-                        <h3 class="text-3xl font-extrabold text-amber-400 mt-1">42 <span class="text-sm font-normal text-gray-400">/ 500</span></h3>
-                    </div>
-                    <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-xl">
-                        <i class="fa-solid fa-wind"></i>
-                    </div>
-                </div>
-                <p class="text-xs text-amber-400/90 mt-3 flex items-center gap-1">
-                    <i class="fa-solid fa-circle text-[8px]"></i> Índice considerado satisfatório
-                </p>
+            <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl shadow-sm">
+                <span class="text-xs text-slate-400 font-medium">Alertas Críticos</span>
+                <div id="card-criticos" class="text-3xl font-bold text-red-400 mt-2">0</div>
             </div>
-        </section>
+        </div>
 
-        <!-- SEÇÃO: GRÁFICOS & FORMULÁRIO DE NOVA DENÚNCIA -->
-        <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            <!-- FORMULÁRIO COM CÁLCULO AUTOMÁTICO DE SEVERIDADE -->
-            <div id="nova-denuncia" class="lg:col-span-1 bg-gray-800/40 border border-gray-700/70 rounded-2xl p-6 shadow-md flex flex-col justify-between">
+        <!-- FORMULÁRIO DE REGISTRO -->
+        <div id="registrar" class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-sm mb-8">
+            <h3 class="text-lg font-semibold text-white mb-4">Registar Ocorrência / Denúncia</h3>
+            <form id="form-ocorrencia" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-pen-to-square text-emerald-400"></i> Nova Ocorrência
-                        </h3>
-                        <span class="text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full font-medium">Classificação Automática</span>
-                    </div>
-
-                    <form id="form-denuncia" class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-medium text-gray-300 mb-1">Local / Endereço *</label>
-                            <input type="text" id="local" required placeholder="Ex: Parque Central, Margem do Rio..." 
-                                class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-emerald-500 transition-colors">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-medium text-gray-300 mb-1">Tipo de Evento *</label>
-                            <select id="tipo-evento" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-emerald-500 transition-colors">
-                                <option value="">Selecione o tipo...</option>
-                                <option value="Queimada / Incêndio">Queimada / Incêndio Florestal</option>
-                                <option value="Descarte Irregular de Lixo">Descarte Irregular de Lixo/Entulho</option>
-                                <option value="Vazamento Químico / Esgoto">Vazamento Químico / Esgoto em Rio</option>
-                                <option value="Desmatamento Ilegal">Desmatamento Ilegal</option>
-                                <option value="Poluição Sonora / Ar">Poluição do Ar ou Sonora</option>
-                            </select>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-medium text-gray-300 mb-1">Impacto Estimado *</label>
-                                <select id="impacto" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-emerald-500 transition-colors">
-                                    <option value="baixo">Pequena Área</option>
-                                    <option value="medio">Média Extensão</option>
-                                    <option value="alto">Grande Extensão / Riscos</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-medium text-gray-300 mb-1">Urgência / Risco *</label>
-                                <select id="urgencia" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-emerald-500 transition-colors">
-                                    <option value="baixa">Sem Risco Imediato</option>
-                                    <option value="media">Risco Moderado</option>
-                                    <option value="alta">Risco Humano / Ambiental Iminente</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-medium text-gray-300 mb-1">Descrição do Ocorrido</label>
-                            <textarea id="descricao" rows="3" placeholder="Forneça mais detalhes sobre a ocorrência..." 
-                                class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-emerald-500 transition-colors resize-none"></textarea>
-                        </div>
-
-                        <!-- Pré-visualização Dinâmica da Severidade Calculada -->
-                        <div class="p-3 bg-gray-900/90 rounded-xl border border-gray-700/80 flex items-center justify-between">
-                            <span class="text-xs text-gray-400">Severidade Calculada:</span>
-                            <span id="preview-severidade" class="px-2.5 py-1 rounded-md text-xs font-bold uppercase bg-gray-800 text-gray-400">
-                                Aguardando dados
-                            </span>
-                        </div>
-
-                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-emerald-600/25 transition-all flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-paper-plane"></i> Registrar Denúncia
-                        </button>
-                    </form>
+                    <label class="block text-xs text-slate-400 mb-1">Tipo de Ocorrência</label>
+                    <input type="text" id="tipo" required placeholder="Ex: Poluição de Rio, Desmatamento" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
                 </div>
-            </div>
-
-            <!-- GRÁFICOS DO DASHBOARD -->
-            <div class="lg:col-span-2 space-y-6 flex flex-col justify-between">
-                <div class="bg-gray-800/40 border border-gray-700/70 rounded-2xl p-6 shadow-md">
-                    <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-chart-line text-emerald-400"></i> Distribuição por Nível de Severidade
-                    </h3>
-                    <div class="h-64 w-full">
-                        <canvas id="graficoSeveridade"></canvas>
-                    </div>
-                </div>
-            </div>
-
-        </section>
-
-        <!-- SEÇÃO: TABELA DE OCORRÊNCIAS RECENTES -->
-        <section id="tabela-ocorrencias" class="bg-gray-800/40 border border-gray-700/70 rounded-2xl p-6 shadow-md">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div>
-                    <h3 class="text-lg font-semibold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-list-ul text-emerald-400"></i> Histórico de Registros
-                    </h3>
-                    <p class="text-xs text-gray-400">Ocorrências classificadas automaticamente pela regra de negócio</p>
+                    <label class="block text-xs text-slate-400 mb-1">Localização</label>
+                    <input type="text" id="local" required placeholder="Ex: Zona Industrial Norte" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
                 </div>
-                <button id="btn-limpar-dados" class="text-xs text-gray-400 hover:text-rose-400 transition-colors flex items-center gap-1 self-start sm:self-auto">
-                    <i class="fa-solid fa-trash-can"></i> Restaurar Padrão
-                </button>
-            </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Nível de Impacto (1 a 5)</label>
+                    <select id="impacto" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        <option value="baixo">Baixo (1-2)</option>
+                        <option value="medio">Moderado (3)</option>
+                        <option value="alto">Alto / Crítico (4-5)</option>
+                    </select>
+                </div>
+                <div class="md:col-span-3 flex justify-end">
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-6 py-2 rounded-lg text-sm transition">
+                        Registar e Analisar via IA
+                    </button>
+                </div>
+            </form>
+        </div>
 
-            <div class="overflow-x-auto rounded-xl border border-gray-700/60">
-                <table class="w-full text-left border-collapse">
+        <!-- TABELA DE HISTÓRICO DE REGISTROS -->
+        <div class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-sm mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-white">Últimos Registros e Histórico</h3>
+                <button onclick="limparHistorico()" class="text-xs text-red-400 hover:underline">Limpar Histórico</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
                     <thead>
-                        <tr class="bg-gray-900/80 text-gray-400 text-xs uppercase tracking-wider border-b border-gray-700/60">
-                            <th class="py-3.5 px-4">Data / Hora</th>
-                            <th class="py-3.5 px-4">Local</th>
-                            <th class="py-3.5 px-4">Tipo de Evento</th>
-                            <th class="py-3.5 px-4 text-center">Severidade Calculada</th>
-                            <th class="py-3.5 px-4 text-right">Ação</th>
+                        <tr class="border-b border-slate-700 text-slate-400 text-xs">
+                            <th class="py-3 px-4">Data/Hora</th>
+                            <th class="py-3 px-4">Tipo</th>
+                            <th class="py-3 px-4">Local</th>
+                            <th class="py-3 px-4">Severidade (IA)</th>
                         </tr>
                     </thead>
-                    <tbody id="tabela-corpo" class="divide-y divide-gray-800 text-sm">
-                        <!-- Conteúdo inserido dinamicamente via JS -->
+                    <tbody id="tabela-corpo" class="divide-y divide-slate-700 text-slate-300">
+                        <!-- Preenchido via JavaScript -->
                     </tbody>
                 </table>
             </div>
-        </section>
-
+        </div>
     </main>
 
-    <!-- SCRIPT DE LÓGICA E CÁLCULO DE SEVERIDADE -->
+    <!-- SCRIPT DE FUNCIONAMENTO E HISTÓRICO -->
     <script>
-        // Dados iniciais de exemplo caso o armazenamento local esteja vazio
-        const ocorrenciasIniciais = [
-            {
-                id: 1,
-                data: "2026-11-06 10:15",
-                local: "Área de Preservação Norte",
-                tipo: "Queimada / Incêndio",
-                impacto: "alto",
-                urgencia: "alta",
-                severidade: "Crítico",
-                descricao: "Foco de incêndio se espalhando rapidamente perto de mata fechada."
-            },
-            {
-                id: 2,
-                data: "2026-11-06 08:40",
-                local: "Distrito Industrial B",
-                tipo: "Vazamento Químico / Esgoto",
-                impacto: "medio",
-                urgencia: "alta",
-                severidade: "Alto",
-                descricao: "Efluente sem tratamento sendo despejado em córrego local."
-            },
-            {
-                id: 3,
-                data: "2026-11-05 16:20",
-                local: "Bairro Residencial Flores",
-                tipo: "Descarte Irregular de Lixo",
-                impacto: "baixo",
-                urgencia: "baixa",
-                severidade: "Baixo",
-                descricao: "Acúmulo de entulho de obra em terreno baldio."
-            }
-        ];
+        // Carregar dados salvos ou iniciar vazio
+        let registros = JSON.parse(localStorage.getItem('eco_registros')) || [];
 
-        let listaOcorrencias = JSON.parse(localStorage.getItem('ecoAlerta_ocorrencias')) || ocorrenciasIniciais;
-        let meugrafico = null;
+        const form = document.getElementById('form-ocorrencia');
+        const tabelaCorpo = document.getElementById('tabela-corpo');
+        const cardTotal = document.getElementById('card-total');
+        const cardCriticos = document.getElementById('card-criticos');
 
-        // FUNÇÃO DE CÁLCULO DE SEVERIDADE AUTOMÁTICA
-        // Analisa o tipo do evento, extensão do impacto e nível de urgência
-        function calcularSeveridade(tipo, impacto, urgencia) {
-            // Regra 1: Incêndios ou Vazamentos Químicos com Alto Impacto ou Alta Urgência são CRÍTICOS
-            if ((tipo.includes("Queimada") || tipo.includes("Vazamento")) && (impacto === "alto" || urgencia === "alta")) {
-                return "Crítico";
-            }
+        function atualizarPainel() {
+            tabelaCorpo.innerHTML = '';
             
-            // Regra 2: Qualquer ocorrência de Grande Extensão ou Alta Urgência é pelo menos ALTO/CRÍTICO
-            if (impacto === "alto" && urgencia === "alta") {
-                return "Crítico";
-            }
-            if (impacto === "alto" || urgencia === "alta") {
-                return "Alto";
-            }
-            
-            // Regra 3: Médio Impacto ou Média Urgência resulta em ALTO
-            if (impacto === "medio" || urgencia === "media") {
-                return "Alto";
+            if (registros.length === 0) {
+                tabelaCorpo.innerHTML = `<tr><td colspan="4" class="py-4 px-4 text-center text-slate-500">Nenhum registro encontrado.</td></tr>`;
+                cardTotal.innerText = '0';
+                cardCriticos.innerText = '0';
+                return;
             }
 
-            // Regra Padrão: Demais sit
+            let criticosCount = 0;
+
+            registros.forEach((reg, index) => {
+                if (reg.severidade === 'Crítico') criticosCount++;
+
+                let badgeColor = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+                if (reg.severidade === 'Alto') badgeColor = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+                if (reg.severidade === 'Crítico') badgeColor = 'bg-red-500/10 text-red-400 border-red-500/20';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-xs text-slate-400">${reg.data}</td>
+                    <td class="py-3 px-4 font-medium text-white">${reg.tipo}</td>
+                    <td class="py-3 px-4">${reg.local}</td>
+                    <td class="py-3 px-4">
+                        <span class="px-2.5 py-1 rounded-full text-xs border font-medium ${badgeColor}">
+                            ${reg.severidade}
+                        </span>
+                    </td>
+                `;
+                tabelaCorpo.appendChild(tr);
+            });
+
+            cardTotal.innerText = registros.length;
+            cardCriticos.innerText = criticosCount;
+        }
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const tipo = document.getElementById('tipo').value;
+            const local = document.getElementById('local').value;
+            const impacto = document.getElementById('impacto').value;
+
+            // Regra automática de cálculo de severidade
+            let severidade = 'Baixo';
+            if (impacto === 'medio') severidade = 'Alto';
+            if (impacto === 'alto') severidade = 'Crítico';
+
+            const agora = new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+
+            const novoRegistro = {
+                data: agora,
+                tipo: tipo,
+                local: local,
+                severidade: severidade
+            };
+
+            registros.unshift(novoRegistro); // Adiciona no início da lista
+            localStorage.setItem('eco_registros', JSON.stringify(registros));
+
+            form.reset();
+            atualizarPainel();
+        });
+
+        function limparHistorico() {
+            if (confirm('Deseja realmente limpar todos os registros?')) {
+                registros = [];
+                localStorage.removeItem('eco_registros');
+                atualizarPainel();
+            }
+        }
+
+        // Inicializar painel ao carregar a página
+        atualizarPainel();
+    </script>
+</body>
+</html>
