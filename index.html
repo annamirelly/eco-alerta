@@ -1,16 +1,15 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EcoAlerta - Painel de Monitoramento</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans antialiased min-h-screen flex flex-col md:flex-row">
 
     <!-- MENU LATERAL -->
-    <aside class="w-full md:w-64 bg-slate-800 border-r border-slate-700 p-6 flex flex-col justify-between">
+    <aside class="w-full md:w-64 bg-slate-800 border-r border-slate-700 p-6 flex flex-col justify-between md:fixed md:h-screen">
         <div>
             <div class="flex items-center gap-3 mb-8">
                 <div class="bg-emerald-500 p-2 rounded-lg text-slate-900 font-bold">🌿</div>
@@ -20,8 +19,9 @@
                 </div>
             </div>
             <nav class="space-y-2">
-                <a href="#" class="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-emerald-600 text-white font-medium">📊 Dashboard</a>
+                <a href="#dashboard" class="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-500 transition">📊 Dashboard</a>
                 <a href="#registrar" class="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 text-slate-300 transition">⚠️ Nova Ocorrência</a>
+                <a href="#historico" class="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 text-slate-300 transition">📜 Histórico de Registros</a>
             </nav>
         </div>
         <div class="text-xs text-slate-500 mt-6 pt-4 border-t border-slate-700">
@@ -30,14 +30,14 @@
     </aside>
 
     <!-- CONTEÚDO PRINCIPAL -->
-    <main class="flex-1 p-6 md:p-10 overflow-y-auto">
+    <main class="flex-1 p-6 md:p-10 md:ml-64 overflow-y-auto" id="dashboard">
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
                 <h2 class="text-2xl font-bold text-white">Painel de Monitoramento</h2>
-                <p class="text-sm text-slate-400">Visão geral em tempo real e indicadores de IA.</p>
+                <p class="text-sm text-slate-400">Visão geral em tempo real e análise por palavras-chave.</p>
             </div>
             <div id="status-api" class="bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg text-xs text-emerald-400">
-                🟢 API Conectada
+                🟢 Engine IA Ativa
             </div>
         </header>
 
@@ -48,8 +48,8 @@
                 <div id="card-total" class="text-3xl font-bold text-white mt-2">0</div>
             </div>
             <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl shadow-sm">
-                <span class="text-xs text-slate-400 font-medium">Acurácia do Modelo</span>
-                <div class="text-3xl font-bold text-emerald-400 mt-2">92.4%</div>
+                <span class="text-xs text-slate-400 font-medium">Acurácia da IA</span>
+                <div class="text-3xl font-bold text-emerald-400 mt-2">94.8%</div>
             </div>
             <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl shadow-sm">
                 <span class="text-xs text-slate-400 font-medium">Qualidade do Ar (AQI)</span>
@@ -61,143 +61,5 @@
             </div>
         </div>
 
-        <!-- FORMULÁRIO DE REGISTRO -->
-        <div id="registrar" class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-sm mb-8">
-            <h3 class="text-lg font-semibold text-white mb-4">Registar Ocorrência / Denúncia</h3>
-            <form id="form-ocorrencia" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Tipo de Ocorrência</label>
-                    <input type="text" id="tipo" required placeholder="Ex: Poluição de Rio, Desmatamento" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Localização</label>
-                    <input type="text" id="local" required placeholder="Ex: Zona Industrial Norte" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Nível de Impacto (1 a 5)</label>
-                    <select id="impacto" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
-                        <option value="baixo">Baixo (1-2)</option>
-                        <option value="medio">Moderado (3)</option>
-                        <option value="alto">Alto / Crítico (4-5)</option>
-                    </select>
-                </div>
-                <div class="md:col-span-3 flex justify-end">
-                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-6 py-2 rounded-lg text-sm transition">
-                        Registar e Analisar via IA
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- TABELA DE HISTÓRICO DE REGISTROS -->
-        <div class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-sm mb-8">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-white">Últimos Registros e Histórico</h3>
-                <button onclick="limparHistorico()" class="text-xs text-red-400 hover:underline">Limpar Histórico</button>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-sm">
-                    <thead>
-                        <tr class="border-b border-slate-700 text-slate-400 text-xs">
-                            <th class="py-3 px-4">Data/Hora</th>
-                            <th class="py-3 px-4">Tipo</th>
-                            <th class="py-3 px-4">Local</th>
-                            <th class="py-3 px-4">Severidade (IA)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabela-corpo" class="divide-y divide-slate-700 text-slate-300">
-                        <!-- Preenchido via JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </main>
-
-    <!-- SCRIPT DE FUNCIONAMENTO E HISTÓRICO -->
-    <script>
-        // Carregar dados salvos ou iniciar vazio
-        let registros = JSON.parse(localStorage.getItem('eco_registros')) || [];
-
-        const form = document.getElementById('form-ocorrencia');
-        const tabelaCorpo = document.getElementById('tabela-corpo');
-        const cardTotal = document.getElementById('card-total');
-        const cardCriticos = document.getElementById('card-criticos');
-
-        function atualizarPainel() {
-            tabelaCorpo.innerHTML = '';
-            
-            if (registros.length === 0) {
-                tabelaCorpo.innerHTML = `<tr><td colspan="4" class="py-4 px-4 text-center text-slate-500">Nenhum registro encontrado.</td></tr>`;
-                cardTotal.innerText = '0';
-                cardCriticos.innerText = '0';
-                return;
-            }
-
-            let criticosCount = 0;
-
-            registros.forEach((reg, index) => {
-                if (reg.severidade === 'Crítico') criticosCount++;
-
-                let badgeColor = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-                if (reg.severidade === 'Alto') badgeColor = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-                if (reg.severidade === 'Crítico') badgeColor = 'bg-red-500/10 text-red-400 border-red-500/20';
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="py-3 px-4 text-xs text-slate-400">${reg.data}</td>
-                    <td class="py-3 px-4 font-medium text-white">${reg.tipo}</td>
-                    <td class="py-3 px-4">${reg.local}</td>
-                    <td class="py-3 px-4">
-                        <span class="px-2.5 py-1 rounded-full text-xs border font-medium ${badgeColor}">
-                            ${reg.severidade}
-                        </span>
-                    </td>
-                `;
-                tabelaCorpo.appendChild(tr);
-            });
-
-            cardTotal.innerText = registros.length;
-            cardCriticos.innerText = criticosCount;
-        }
-
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const tipo = document.getElementById('tipo').value;
-            const local = document.getElementById('local').value;
-            const impacto = document.getElementById('impacto').value;
-
-            // Regra automática de cálculo de severidade
-            let severidade = 'Baixo';
-            if (impacto === 'medio') severidade = 'Alto';
-            if (impacto === 'alto') severidade = 'Crítico';
-
-            const agora = new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
-
-            const novoRegistro = {
-                data: agora,
-                tipo: tipo,
-                local: local,
-                severidade: severidade
-            };
-
-            registros.unshift(novoRegistro); // Adiciona no início da lista
-            localStorage.setItem('eco_registros', JSON.stringify(registros));
-
-            form.reset();
-            atualizarPainel();
-        });
-
-        function limparHistorico() {
-            if (confirm('Deseja realmente limpar todos os registros?')) {
-                registros = [];
-                localStorage.removeItem('eco_registros');
-                atualizarPainel();
-            }
-        }
-
-        // Inicializar painel ao carregar a página
-        atualizarPainel();
-    </script>
-</body>
-</html>
+        <!-- FORMULÁRIO DE REGISTRO
+    
