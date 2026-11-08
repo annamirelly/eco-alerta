@@ -52,7 +52,7 @@
                 <div class="text-3xl font-bold text-emerald-400 mt-2">94.8%</div>
             </div>
             <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl shadow-sm">
-                <span class="text-xs text-slate-400 font-medium">Qualidade do Ar (AQI)</span>
+                <span class="text-xs text-slate-400 font-medium">Qualidade do Air (AQI)</span>
                 <div class="text-3xl font-bold text-blue-400 mt-2">Bom (34)</div>
             </div>
             <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl shadow-sm">
@@ -64,6 +64,12 @@
         <!-- FORMULÁRIO DE REGISTRO -->
         <div id="registrar" class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-sm mb-8 scroll-mt-6">
             <h3 class="text-lg font-semibold text-white mb-4">Registar Ocorrência / Denúncia</h3>
+            
+            <!-- AVISO VISUAL PARA TESTAR SE O BOTÃO RESPONDE -->
+            <div id="aviso-teste" class="mb-4 p-3 bg-emerald-900/50 border border-emerald-500 rounded-lg text-xs text-emerald-300 hidden">
+                ✅ Botão clicado com sucesso! A enviar...
+            </div>
+
             <form id="formulario-ocorrencia" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs text-slate-400 mb-1">Título / Tipo de Ocorrência</label>
@@ -74,8 +80,8 @@
                     <input type="text" id="local" required placeholder="Ex: R. Principal, Bairro Centro" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
                 </div>
                 <div class="md:col-span-2">
-                    <label class="block text-xs text-slate-400 mb-1">Descrição Detalhada (A severidade é calculada automaticamente por palavras-chave)</label>
-                    <textarea id="descricao" required rows="3" placeholder="Descreva a ocorrência. Ex: Foi identificado um vazamento tóxico de óleo no local..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"></textarea>
+                    <label class="block text-xs text-slate-400 mb-1">Descrição Detalhada</label>
+                    <textarea id="descricao" required rows="3" placeholder="Descreva a ocorrência..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"></textarea>
                 </div>
                 <div class="md:col-span-2 flex justify-end">
                     <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-6 py-2 rounded-lg text-sm transition">
@@ -85,12 +91,9 @@
             </form>
         </div>
 
-        <!-- TABELA DE HISTÓRICO DE REGISTROS -->
+        <!-- TABELA DE HISTÓRICO -->
         <div id="historico" class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-sm mb-8 scroll-mt-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-white">Últimos Registros e Histórico</h3>
-                <button onclick="limparHistorico()" class="text-xs text-red-400 hover:underline">Limpar Todo o Histórico</button>
-            </div>
+            <h3 class="text-lg font-semibold text-white mb-4">Últimos Registros e Histórico</h3>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-sm">
                     <thead>
@@ -99,77 +102,45 @@
                             <th class="py-3 px-4">Ocorrência</th>
                             <th class="py-3 px-4">Descrição</th>
                             <th class="py-3 px-4">Local</th>
-                            <th class="py-3 px-4">Severidade (Auto)</th>
+                            <th class="py-3 px-4">Severidade</th>
                             <th class="py-3 px-4 text-right">Ação</th>
                         </tr>
                     </thead>
-                    <tbody id="tabela-corpo" class="divide-y divide-slate-700 text-slate-300">
-                        <!-- Preenchido via JavaScript -->
-                    </tbody>
+                    <tbody id="tabela-corpo" class="divide-y divide-slate-700 text-slate-300"></tbody>
                 </table>
             </div>
         </div>
     </main>
 
-    <!-- SCRIPT PRINCIPAL DE INTERFACE -->
+    <!-- SCRIPTS -->
     <script>
         let registros = JSON.parse(localStorage.getItem('eco_registros')) || [];
-
         const tabelaCorpo = document.getElementById('tabela-corpo');
         const cardTotal = document.getElementById('card-total');
         const cardCriticos = document.getElementById('card-criticos');
 
-        function classificarPorPalavrasChave(texto) {
-            const txt = texto.toLowerCase();
-            const palavrasCriticas = ['vazamento', 'incêndio', 'incendio', 'fogo', 'explosão', 'explosao', 'tóxico', 'toxico', 'envenenamento', 'morte', 'emergência', 'emergencia', 'esgoto'];
-            const palavrasAltas = ['desmatamento', 'lixo', 'poluição', 'poluicao', 'óleo', 'oleo', 'fumaça', 'fumaca', 'cheiro', 'contaminação', 'contaminacao', 'buraco'];
-
-            for (let palavra of palavrasCriticas) {
-                if (txt.includes(palavra)) return 'Crítico';
-            }
-            for (let palavra of palavrasAltas) {
-                if (txt.includes(palavra)) return 'Alto';
-            }
-            return 'Baixo';
-        }
-
         function atualizarPainel() {
             tabelaCorpo.innerHTML = '';
-            
             if (registros.length === 0) {
                 tabelaCorpo.innerHTML = `<tr><td colspan="6" class="py-4 px-4 text-center text-slate-500">Nenhum registro no histórico.</td></tr>`;
                 cardTotal.innerText = '0';
                 cardCriticos.innerText = '0';
                 return;
             }
-
             let criticosCount = 0;
-
             registros.forEach((reg, index) => {
                 if (reg.severidade === 'Crítico') criticosCount++;
-
-                let badgeColor = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-                if (reg.severidade === 'Alto') badgeColor = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-                if (reg.severidade === 'Crítico') badgeColor = 'bg-red-500/10 text-red-400 border-red-500/20';
-
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="py-3 px-4 text-xs text-slate-400">${reg.data}</td>
                     <td class="py-3 px-4 font-medium text-white">${reg.tipo}</td>
                     <td class="py-3 px-4 text-xs text-slate-300 max-w-xs truncate">${reg.descricao}</td>
                     <td class="py-3 px-4">${reg.local}</td>
-                    <td class="py-3 px-4">
-                        <span class="px-2.5 py-1 rounded-full text-xs border font-medium ${badgeColor}">
-                            ${reg.severidade}
-                        </span>
-                    </td>
-                    <td class="py-3 px-4 text-right">
-                        <button onclick="removerItem(${index})" class="text-xs text-red-400 hover:text-red-300">Excluir</button>
-                    </td>
+                    <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs border font-medium bg-emerald-500/10 text-emerald-400">${reg.severidade}</span></td>
+                    <td class="py-3 px-4 text-right"><button onclick="removerItem(${index})" class="text-xs text-red-400">Excluir</button></td>
                 `;
                 tabelaCorpo.appendChild(tr);
             });
-
             cardTotal.innerText = registros.length;
             cardCriticos.innerText = criticosCount;
         }
@@ -180,18 +151,10 @@
             atualizarPainel();
         }
 
-        function limparHistorico() {
-            if (confirm('Deseja apagar todo o histórico?')) {
-                registros = [];
-                localStorage.removeItem('eco_registros');
-                atualizarPainel();
-            }
-        }
-
         atualizarPainel();
     </script>
 
-    <!-- BANCO DE DADOS FIREBASE E EVENTO DO FORMULÁRIO -->
+    <!-- FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -209,58 +172,31 @@
         const db = getFirestore(app);
 
         const formulario = document.getElementById("formulario-ocorrencia");
+        const avisoTeste = document.getElementById("aviso-teste");
 
         if (formulario) {
             formulario.addEventListener("submit", async (e) => {
                 e.preventDefault();
                 
+                if (avisoTeste) avisoTeste.classList.remove("hidden");
+
                 const tipo = document.getElementById("tipo").value;
                 const local = document.getElementById("local").value;
                 const descricao = document.getElementById("descricao").value;
 
-                // Calcula a severidade automaticamente usando a mesma lógica
-                const severidade = (function(texto) {
-                    const txt = texto.toLowerCase();
-                    const criticas = ['vazamento', 'incêndio', 'incendio', 'fogo', 'explosão', 'explosao', 'tóxico', 'toxico', 'envenenamento', 'morte', 'emergência', 'emergencia', 'esgoto'];
-                    const altas = ['desmatamento', 'lixo', 'poluição', 'poluicao', 'óleo', 'oleo', 'fumaça', 'fumaca', 'cheiro', 'contaminação', 'contaminacao', 'buraco'];
-                    for (let p of criticas) if (txt.includes(p)) return 'Crítico';
-                    for (let p of altas) if (txt.includes(p)) return 'Alto';
-                    return 'Baixo';
-                })(descricao);
-
-                const dataFormatada = new Date().toLocaleString('pt-BR');
-
                 try {
-                    // Salva no Firebase Firestore
                     await addDoc(collection(db, "denuncias"), {
                         tipo,
                         local,
                         descricao,
-                        severidade,
-                        data: dataFormatada
+                        data: new Date().toLocaleString('pt-BR')
                     });
-
-                    // Salva também localmente para atualizar o painel visual na hora
-                    let registrosAtuais = JSON.parse(localStorage.getItem('eco_registros')) || [];
-                    registrosAtuais.unshift({
-                        tipo,
-                        local,
-                        descricao,
-                        severidade,
-                        data: dataFormatada
-                    });
-                    localStorage.setItem('eco_registros', JSON.stringify(registrosAtuais));
-
-                    // Atualiza o painel visualmente
-                    if (typeof atualizarPainel === 'function') {
-                        atualizarPainel();
-                    }
-
+                    
                     alert("✅ Ocorrência salva com sucesso no Firebase!");
                     formulario.reset();
                 } catch (error) {
-                    console.error("Erro ao salvar: ", error);
-                    alert("❌ Erro ao salvar ocorrência no servidor.");
+                    console.error("Erro: ", error);
+                    alert("❌ Erro ao salvar: " + error.message);
                 }
             });
         }
