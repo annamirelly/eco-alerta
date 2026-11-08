@@ -64,8 +64,7 @@
         <!-- FORMULÁRIO DE REGISTRO -->
         <div id="registrar" class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-sm mb-8 scroll-mt-6">
             <h3 class="text-lg font-semibold text-white mb-4">Registar Ocorrência / Denúncia</h3>
-        <form id="formulario-ocorrencia" ...>
-            class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form id="formulario-ocorrencia" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs text-slate-400 mb-1">Título / Tipo de Ocorrência</label>
                     <input type="text" id="tipo" required placeholder="Ex: Incêndio na mata, Lixo no rio" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
@@ -112,29 +111,25 @@
         </div>
     </main>
 
-    <!-- SCRIPT DE PROCESSAMENTO AUTOMÁTICO E NAVEGAÇÃO -->
+    <!-- SCRIPT PRINCIPAL DE INTERFACE -->
     <script>
         let registros = JSON.parse(localStorage.getItem('eco_registros')) || [];
 
-        const form = document.getElementById('form-ocorrencia');
         const tabelaCorpo = document.getElementById('tabela-corpo');
         const cardTotal = document.getElementById('card-total');
         const cardCriticos = document.getElementById('card-criticos');
 
         function classificarPorPalavrasChave(texto) {
             const txt = texto.toLowerCase();
-
             const palavrasCriticas = ['vazamento', 'incêndio', 'incendio', 'fogo', 'explosão', 'explosao', 'tóxico', 'toxico', 'envenenamento', 'morte', 'emergência', 'emergencia', 'esgoto'];
             const palavrasAltas = ['desmatamento', 'lixo', 'poluição', 'poluicao', 'óleo', 'oleo', 'fumaça', 'fumaca', 'cheiro', 'contaminação', 'contaminacao', 'buraco'];
 
             for (let palavra of palavrasCriticas) {
                 if (txt.includes(palavra)) return 'Crítico';
             }
-
             for (let palavra of palavrasAltas) {
                 if (txt.includes(palavra)) return 'Alto';
             }
-
             return 'Baixo';
         }
 
@@ -179,29 +174,6 @@
             cardCriticos.innerText = criticosCount;
         }
 
-        formulario.addEventListener('submit', async function(e) {
-  e.preventDefault();
-
-  const tipo = documento.getElementById('tipo').valor;
-  const local = documento.getElementById('local').valor;
-  const descricao = documento.getElementById('descricao').valor;
-
-  // Envia os dados recolhidos no formulário diretamente para o Firebase
-  try {
-    await addDoc(coleção(db, "denuncias"), {
-      tipo: tipo,
-      local: local,
-      descricao: descricao,
-      data: novo Data().({ 'pt-BR' })
-    });
-    alerta("✅ Alerta ecológico guardado no servidor!");
-  } catch (erro) {
-    alerta("❌ Erro ao guardar no servidor.");
-  }
-
-  formulario.redefinir();
-});
-
         function removerItem(index) {
             registros.splice(index, 1);
             localStorage.setItem('eco_registros', JSON.stringify(registros));
@@ -218,49 +190,80 @@
 
         atualizarPainel();
     </script>
+
+    <!-- BANCO DE DADOS FIREBASE E EVENTO DO FORMULÁRIO -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCfAl_6TXkUnQcM-dfQ2GC1eI0NvvudP2M",
+            authDomain: "eco-alerta-333a6.firebaseapp.com",
+            projectId: "eco-alerta-333a6",
+            storageBucket: "eco-alerta-333a6.firebasestorage.app",
+            messagingSenderId: "583732087765",
+            appId: "1:583732087765:web:e9245099a93646d208cb5c"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const formulario = document.getElementById("formulario-ocorrencia");
+
+        if (formulario) {
+            formulario.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                
+                const tipo = document.getElementById("tipo").value;
+                const local = document.getElementById("local").value;
+                const descricao = document.getElementById("descricao").value;
+
+                // Calcula a severidade automaticamente usando a mesma lógica
+                const severidade = (function(texto) {
+                    const txt = texto.toLowerCase();
+                    const criticas = ['vazamento', 'incêndio', 'incendio', 'fogo', 'explosão', 'explosao', 'tóxico', 'toxico', 'envenenamento', 'morte', 'emergência', 'emergencia', 'esgoto'];
+                    const altas = ['desmatamento', 'lixo', 'poluição', 'poluicao', 'óleo', 'oleo', 'fumaça', 'fumaca', 'cheiro', 'contaminação', 'contaminacao', 'buraco'];
+                    for (let p of criticas) if (txt.includes(p)) return 'Crítico';
+                    for (let p of altas) if (txt.includes(p)) return 'Alto';
+                    return 'Baixo';
+                })(descricao);
+
+                const dataFormatada = new Date().toLocaleString('pt-BR');
+
+                try {
+                    // Salva no Firebase Firestore
+                    await addDoc(collection(db, "denuncias"), {
+                        tipo,
+                        local,
+                        descricao,
+                        severidade,
+                        data: dataFormatada
+                    });
+
+                    // Salva também localmente para atualizar o painel visual na hora
+                    let registrosAtuais = JSON.parse(localStorage.getItem('eco_registros')) || [];
+                    registrosAtuais.unshift({
+                        tipo,
+                        local,
+                        descricao,
+                        severidade,
+                        data: dataFormatada
+                    });
+                    localStorage.setItem('eco_registros', JSON.stringify(registrosAtuais));
+
+                    // Atualiza o painel visualmente
+                    if (typeof atualizarPainel === 'function') {
+                        atualizarPainel();
+                    }
+
+                    alert("✅ Ocorrência salva com sucesso no Firebase!");
+                    formulario.reset();
+                } catch (error) {
+                    console.error("Erro ao salvar: ", error);
+                    alert("❌ Erro ao salvar ocorrência no servidor.");
+                }
+            });
+        }
+    </script>
 </body>
 </html>
-  <!-- BANCO DE DADOS -->
-  <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCfAl_6TXkUnQcM-dfQ2GC1eI0NvvudP2M",
-    authDomain: "eco-alerta-333a6.firebaseapp.com",
-    projectId: "eco-alerta-333a6",
-    storageBucket: "eco-alerta-333a6.firebasestorage.app",
-    messagingSenderId: "583732087765",
-    appId: "1:583732087765:web:e9245099a93646d208cb5c"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  const formulario = document.getElementById("formulario-ocorrencia");
-
-  if (formulario) {
-    formulario.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      
-      const tipo = document.getElementById("tipo").value;
-      const local = document.getElementById("local").value;
-      const descricao = document.getElementById("descricao").value;
-
-      try {
-        await addDoc(collection(db, "denuncias"), {
-          tipo: tipo,
-          local: local,
-          descricao: descricao,
-          data: new Date().toISOString()
-        });
-        
-        alert("Ocorrência salva com sucesso no Firebase!");
-        formulario.reset();
-      } catch (error) {
-        console.error("Erro ao salvar: ", error);
-        alert("Erro ao salvar ocorrência.");
-      }
-    });
-  }
-</script>
