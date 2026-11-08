@@ -178,30 +178,28 @@
             cardCriticos.innerText = criticosCount;
         }
 
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
+        formulario.addEventListener('submit', async function(e) {
+  e.preventDefault();
 
-            const tipo = document.getElementById('tipo').value;
-            const local = document.getElementById('local').value;
-            const descricao = document.getElementById('descricao').value;
+  const tipo = documento.getElementById('tipo').valor;
+  const local = documento.getElementById('local').valor;
+  const descricao = documento.getElementById('descricao').valor;
 
-            const severidade = classificarPorPalavrasChave(tipo + " " + descricao);
-            const agora = new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+  // Envia os dados recolhidos no formulário diretamente para o Firebase
+  try {
+    await addDoc(coleção(db, "denuncias"), {
+      tipo: tipo,
+      local: local,
+      descricao: descricao,
+      data: novo Data().({ 'pt-BR' })
+    });
+    alerta("✅ Alerta ecológico guardado no servidor!");
+  } catch (erro) {
+    alerta("❌ Erro ao guardar no servidor.");
+  }
 
-            const novoRegistro = {
-                data: agora,
-                tipo: tipo,
-                local: local,
-                descricao: descricao,
-                severidade: severidade
-            };
-
-            registros.unshift(novoRegistro);
-            localStorage.setItem('eco_registros', JSON.stringify(registros));
-
-            form.reset();
-            atualizarPainel();
-        });
+  formulario.redefinir();
+});
 
         function removerItem(index) {
             registros.splice(index, 1);
