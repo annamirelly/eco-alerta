@@ -221,3 +221,35 @@
     </script>
 </body>
 </html>
+  <!-- BANCO DE DADOS -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Conexão direta com o banco de dados
+    const firebaseConfig = {
+      apiKey: "AIzaSyAsExampleOnlyKey123456",
+      authDomain: "eco-alerta-app.firebaseapp.com",
+      projectId: "eco-alerta-app",
+      storageBucket: "eco-alerta-app.appspot.com",
+      messagingSenderId: "1234567890",
+      appId: "1:1234567890:web:example"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Função que salva o alerta quando alguém clica no botão
+    window.salvarAlerta = async function(textoAlerta) {
+      try {
+        await addDoc(collection(db, "denuncias"), {
+          mensagem: textoAlerta || "Alerta de emergência enviado!",
+          data: new Date().toLocaleString("pt-BR")
+        });
+        alert("✅ Alerta salvo com sucesso no sistema!");
+      } catch (e) {
+        alert("❌ Erro ao enviar. Tente novamente.");
+      }
+    };
+  </script>
+
