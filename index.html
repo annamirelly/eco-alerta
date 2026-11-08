@@ -222,33 +222,45 @@
 </html>
   <!-- BANCO DE DADOS -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Conexão direta com o banco de dados
-    const firebaseConfig = {
-      apiKey: "AIzaSyAsExampleOnlyKey123456",
-      authDomain: "eco-alerta-app.firebaseapp.com",
-      projectId: "eco-alerta-app",
-      storageBucket: "eco-alerta-app.appspot.com",
-      messagingSenderId: "1234567890",
-      appId: "1:1234567890:web:example"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyCfAl_6TXkUnQcM-dfQ2GC1eI0NvvudP2M",
+    authDomain: "eco-alerta-333a6.firebaseapp.com",
+    projectId: "eco-alerta-333a6",
+    storageBucket: "eco-alerta-333a6.firebasestorage.app",
+    messagingSenderId: "583732087765",
+    appId: "1:583732087765:web:e9245099a93646d208cb5c"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    // Função que salva o alerta quando alguém clica no botão
-    window.salvarAlerta = async function(textoAlerta) {
+  const formulario = document.getElementById("formulario-ocorrencia");
+
+  if (formulario) {
+    formulario.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      
+      const tipo = document.getElementById("tipo").value;
+      const local = document.getElementById("local").value;
+      const descricao = document.getElementById("descricao").value;
+
       try {
         await addDoc(collection(db, "denuncias"), {
-          mensagem: textoAlerta || "Alerta de emergência enviado!",
-          data: new Date().toLocaleString("pt-BR")
+          tipo: tipo,
+          local: local,
+          descricao: descricao,
+          data: new Date().toISOString()
         });
-        alert("✅ Alerta salvo com sucesso no sistema!");
-      } catch (e) {
-        alert("❌ Erro ao enviar. Tente novamente.");
+        
+        alert("Ocorrência salva com sucesso no Firebase!");
+        formulario.reset();
+      } catch (error) {
+        console.error("Erro ao salvar: ", error);
+        alert("Erro ao salvar ocorrência.");
       }
-    };
-  </script>
-
+    });
+  }
+</script>
