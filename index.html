@@ -26,24 +26,24 @@
         }
     </script>
 </head>
-<body class="bg-[#07130d] text-slate-100 font-sans antialiased min-h-screen flex flex-col pb-20 md:pb-0">
+<body class="bg-[#07130d] text-slate-100 font-sans antialiased min-h-screen flex flex-col pb-24">
 
     <!-- CABEÇALHO -->
     <header class="bg-[#0f2318] border-b border-[#1b3a2a] px-4 py-3.5 sticky top-0 z-40 flex justify-between items-center shadow-md">
-        <div class="flex items-center gap-3">
-            <div class="bg-emerald-500/10 border border-emerald-500/30 p-2 rounded-xl text-emerald-400 font-bold text-lg">🌿</div>
+        <div class="flex items-center gap-2.5">
+            <div class="bg-emerald-500/10 border border-emerald-500/30 p-2 rounded-xl text-emerald-400 font-bold text-base">🌿</div>
             <div>
-                <h1 class="text-base font-bold tracking-wide text-white flex items-center gap-2">
-                    EcoAlerta <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/30">v2.4 Live</span>
+                <h1 class="text-sm font-bold tracking-wide text-white flex items-center gap-1.5">
+                    EcoAlerta <span class="text-[9px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/30">v2.4</span>
                 </h1>
-                <p class="text-[11px] text-slate-400">GreenPulse Engine • Monitoramento Inteligente</p>
+                <p class="text-[10px] text-slate-400">GreenPulse Engine • IA Ativa</p>
             </div>
         </div>
 
-        <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-2">
             <!-- NOTIFICAÇÕES -->
             <div class="relative">
-                <button onclick="alternarNotificacoes()" class="p-2 bg-[#142f21] border border-[#224a35] hover:border-emerald-500/50 rounded-xl text-slate-300 transition relative">
+                <button onclick="alternarNotificacoes()" class="p-2 bg-[#142f21] border border-[#224a35] rounded-xl text-slate-300 relative">
                     🔔
                     <span id="badge-notif" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full">0</span>
                 </button>
@@ -53,99 +53,81 @@
                         <button onclick="limparNotificacoes()" class="text-[10px] text-emerald-400 hover:underline">Limpar</button>
                     </div>
                     <ul id="lista-notif" class="max-h-56 overflow-y-auto divide-y divide-[#1b3a2a]">
-                        <li class="p-3 text-slate-400 text-center">Nenhuma nova notificação.</li>
+                        <li class="p-3 text-slate-400 text-center">Nenhuma notificação.</li>
                     </ul>
                 </div>
-            </div>
-            <div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-400">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> IA Ativa
             </div>
         </div>
     </header>
 
     <!-- CONTEÚDO PRINCIPAL -->
-    <main class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 space-y-6">
+    <main class="flex-1 max-w-lg w-full mx-auto p-4 space-y-4">
 
         <!-- CARTÕES DE ESTATÍSTICAS -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div class="bg-[#0f2318] border border-[#1b3a2a] p-4 rounded-2xl shadow-sm">
-                <span class="text-[11px] text-slate-400 font-medium">Total Registros</span>
-                <div id="stat-total" class="text-2xl font-bold text-white mt-1">0</div>
+        <div class="grid grid-cols-2 gap-3">
+            <div class="bg-[#0f2318] border border-[#1b3a2a] p-3.5 rounded-2xl shadow-sm">
+                <span class="text-[10px] text-slate-400 font-medium">Total Registros</span>
+                <div id="stat-total" class="text-xl font-bold text-white mt-1">0</div>
             </div>
-            <div class="bg-[#0f2318] border border-[#1b3a2a] p-4 rounded-2xl shadow-sm">
-                <span class="text-[11px] text-slate-400 font-medium">Alertas Críticos</span>
-                <div id="stat-criticos" class="text-2xl font-bold text-red-400 mt-1">0</div>
-            </div>
-            <div class="bg-[#0f2318] border border-[#1b3a2a] p-4 rounded-2xl shadow-sm">
-                <span class="text-[11px] text-slate-400 font-medium">Acurácia IA</span>
-                <div class="text-2xl font-bold text-emerald-400 mt-1">94.8%</div>
-            </div>
-            <div class="bg-[#0f2318] border border-[#1b3a2a] p-4 rounded-2xl shadow-sm">
-                <span class="text-[11px] text-slate-400 font-medium">Qualidade do Ar</span>
-                <div class="text-2xl font-bold text-blue-400 mt-1">Bom (34)</div>
+            <div class="bg-[#0f2318] border border-[#1b3a2a] p-3.5 rounded-2xl shadow-sm">
+                <span class="text-[10px] text-slate-400 font-medium">Alertas Críticos</span>
+                <div id="stat-criticos" class="text-xl font-bold text-red-400 mt-1">0</div>
             </div>
         </div>
 
         <!-- FORMULÁRIO DE CADASTRO -->
-        <section id="secao-registrar" class="bg-[#0f2318] border border-[#1b3a2a] p-5 md:p-6 rounded-2xl shadow-md">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                    <span>⚠️</span> Registar Nova Ocorrência Ambiental
+        <section id="secao-registrar" class="bg-[#0f2318] border border-[#1b3a2a] p-4 rounded-2xl shadow-md">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                    <span>⚠️</span> Registar Ocorrência
                 </h2>
-                <span id="preview-tag-ia" class="text-[10px] px-2.5 py-1 rounded-full border bg-emerald-500/10 text-emerald-400 border-emerald-500/30 transition-all">
-                    IA: Aguardando texto...
+                <span id="preview-tag-ia" class="text-[10px] px-2.5 py-0.5 rounded-full border bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+                    IA: Aguardando...
                 </span>
             </div>
 
-            <form id="form-alerta" onsubmit="salvarOcorrencia(event)" class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs text-slate-400 mb-1">Título / Tipo de Ocorrência</label>
-                        <input type="text" id="input-tipo" required placeholder="Ex: Incêndio na mata, Vazamento de óleo" class="w-full bg-[#07130d] border border-[#1b3a2a] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-slate-400 mb-1">Localização</label>
-                        <input type="text" id="input-local" required placeholder="Ex: Zona Industrial, Margem do Rio" class="w-full bg-[#07130d] border border-[#1b3a2a] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 transition">
-                    </div>
-                </div>
-
+            <form id="form-alerta" onsubmit="salvarOcorrencia(event)" class="space-y-3">
                 <div>
-                    <label class="block text-xs text-slate-400 mb-1">Descrição Detalhada (Analisada automaticamente pela IA)</label>
-                    <textarea id="input-descricao" rows="3" required oninput="testarClassificacaoTempoReal()" placeholder="Descreva o incidente em detalhes..." class="w-full bg-[#07130d] border border-[#1b3a2a] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 transition"></textarea>
+                    <label class="block text-[11px] text-slate-400 mb-1">Título / Tipo de Ocorrência</label>
+                    <input type="text" id="input-tipo" required placeholder="Ex: Incêndio, Vazamento" class="w-full bg-[#07130d] border border-[#1b3a2a] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
                 </div>
-
-                <div class="flex justify-end gap-2 pt-1">
-                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition shadow-lg shadow-emerald-900/40">
-                        Analisar e Publicar Alerta
-                    </button>
+                <div>
+                    <label class="block text-[11px] text-slate-400 mb-1">Localização</label>
+                    <input type="text" id="input-local" required placeholder="Ex: Rua Principal, Centro" class="w-full bg-[#07130d] border border-[#1b3a2a] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
                 </div>
+                <div>
+                    <label class="block text-[11px] text-slate-400 mb-1">Descrição (Analisada pela IA)</label>
+                    <textarea id="input-descricao" rows="2" required oninput="testarClassificacaoTempoReal()" placeholder="Descreva o incidente..." class="w-full bg-[#07130d] border border-[#1b3a2a] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2.5 rounded-xl transition shadow-lg shadow-emerald-900/40">
+                    Publicar Alerta
+                </button>
             </form>
         </section>
 
         <!-- HISTÓRICO / FEED -->
-        <section id="secao-historico" class="bg-[#0f2318] border border-[#1b3a2a] p-5 md:p-6 rounded-2xl shadow-md space-y-4">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+        <section id="secao-historico" class="bg-[#0f2318] border border-[#1b3a2a] p-4 rounded-2xl shadow-md space-y-3">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
                     <span>📜</span> Feed de Ocorrências
                 </h3>
-                <div class="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-                    <button onclick="filtrarFeed('Todos')" id="filtro-Todos" class="px-3 py-1 rounded-xl text-xs font-medium bg-emerald-600 text-white transition">Todos</button>
-                    <button onclick="filtrarFeed('Crítico')" id="filtro-Crítico" class="px-3 py-1 rounded-xl text-xs font-medium bg-[#142f21] text-slate-300 hover:bg-[#1b3a2a] transition">Crítico</button>
-                    <button onclick="filtrarFeed('Alto')" id="filtro-Alto" class="px-3 py-1 rounded-xl text-xs font-medium bg-[#142f21] text-slate-300 hover:bg-[#1b3a2a] transition">Alto</button>
-                    <button onclick="filtrarFeed('Baixo')" id="filtro-Baixo" class="px-3 py-1 rounded-xl text-xs font-medium bg-[#142f21] text-slate-300 hover:bg-[#1b3a2a] transition">Baixo</button>
+                <div class="flex items-center gap-1 overflow-x-auto pb-1">
+                    <button onclick="filtrarFeed('Todos')" id="filtro-Todos" class="px-2.5 py-1 rounded-xl text-[10px] font-medium bg-emerald-600 text-white transition">Todos</button>
+                    <button onclick="filtrarFeed('Crítico')" id="filtro-Crítico" class="px-2.5 py-1 rounded-xl text-[10px] font-medium bg-[#142f21] text-slate-300 transition">Crítico</button>
+                    <button onclick="filtrarFeed('Baixo')" id="filtro-Baixo" class="px-2.5 py-1 rounded-xl text-[10px] font-medium bg-[#142f21] text-slate-300 transition">Baixo</button>
                 </div>
             </div>
 
-            <div id="feed-container" class="space-y-3">
-                <p class="text-xs text-slate-500 text-center py-6">Nenhum registro encontrado no sistema.</p>
+            <div id="feed-container" class="space-y-2.5">
+                <p class="text-[11px] text-slate-500 text-center py-4">Nenhum registro encontrado.</p>
             </div>
         </section>
     </main>
 
-    <!-- NAVEGAÇÃO INFERIOR MOBILE (Estilo Lovable) -->
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[#0f2318]/95 backdrop-blur border-t border-[#1b3a2a] p-2 px-6 flex justify-around items-center z-40">
+    <!-- NAVEGAÇÃO INFERIOR MOBILE -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-[#0f2318]/95 backdrop-blur border-t border-[#1b3a2a] p-2.5 px-6 flex justify-around items-center z-40">
         <a href="#secao-registrar" class="flex flex-col items-center text-emerald-400 text-[10px] font-medium">
-            <span class="text-base">📊</span> Dashboard
+            <span class="text-base">📊</span> Início
         </a>
         <a href="#secao-registrar" class="flex flex-col items-center text-slate-400 hover:text-white text-[10px] font-medium">
             <span class="text-base">⚠️</span> Registrar
@@ -155,13 +137,12 @@
         </a>
     </nav>
 
-    <!-- SCRIPT DE LÓGICA E CLASSIFICAÇÃO -->
+    <!-- SCRIPTS -->
     <script>
-        let registros = JSON.parse(localStorage.getItem('eco_registros_v2')) || [];
-        let notificacoes = JSON.parse(localStorage.getItem('eco_notif_v2')) || [];
+        let registros = JSON.parse(localStorage.getItem('eco_registros_v3')) || [];
+        let notificacoes = JSON.parse(localStorage.getItem('eco_notif_v3')) || [];
         let filtroAtual = 'Todos';
 
-        // MOTOR DE CLASSIFICAÇÃO POR PALAVRAS-CHAVE (Corrigido e Abarcando Acentos)
         function classificarSeveridade(textoCompleto) {
             if (!textoCompleto) return { nivel: 'Baixo', cor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' };
 
@@ -193,8 +174,8 @@
             const desc = document.getElementById('input-descricao').value;
             const res = classificarSeveridade(titulo + " " + desc);
             const badge = document.getElementById('preview-tag-ia');
-            badge.className = `text-[10px] px-2.5 py-1 rounded-full border font-semibold ${res.cor}`;
-            badge.innerText = `IA Classificou: ${res.nivel}`;
+            badge.className = `text-[10px] px-2.5 py-0.5 rounded-full border font-semibold ${res.cor}`;
+            badge.innerText = `IA: ${res.nivel}`;
         }
 
         function salvarOcorrencia(e) {
@@ -211,17 +192,16 @@
                 local,
                 descricao,
                 severidade: classificacao.nivel,
-                data: new Date().toLocaleString('pt-BR')
+                data: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + ' - ' + new Date().toLocaleDateString('pt-BR')
             };
 
             registros.unshift(novoRegistro);
-            localStorage.setItem('eco_registros_v2', JSON.stringify(registros));
-
+            localStorage.setItem('eco_registros_v3', JSON.stringify(registros));
             adicionarNotificacao('Nova Ocorrência', `"${tipo}" classificado como ${classificacao.nivel}.`);
             
             document.getElementById('form-alerta').reset();
-            document.getElementById('preview-tag-ia').className = "text-[10px] px-2.5 py-1 rounded-full border bg-emerald-500/10 text-emerald-400 border-emerald-500/30";
-            document.getElementById('preview-tag-ia').innerText = "IA: Aguardando texto...";
+            document.getElementById('preview-tag-ia').className = "text-[10px] px-2.5 py-0.5 rounded-full border bg-emerald-500/10 text-emerald-400 border-emerald-500/30";
+            document.getElementById('preview-tag-ia').innerText = "IA: Aguardando...";
 
             atualizarPainel();
         }
@@ -229,29 +209,24 @@
         function mudarSeveridadeManual(id, novaSev) {
             const reg = registros.find(r => r.id === id);
             if (reg) {
-                const antigo = reg.severidade;
                 reg.severidade = novaSev;
-                localStorage.setItem('eco_registros_v2', JSON.stringify(registros));
-                adicionarNotificacao('Severidade Alterada', `"${reg.tipo}" mudou de ${antigo} para ${novaSev}.`);
+                localStorage.setItem('eco_registros_v3', JSON.stringify(registros));
                 atualizarPainel();
             }
         }
 
         function excluirRegistro(id) {
             registros = registros.filter(r => r.id !== id);
-            localStorage.setItem('eco_registros_v2', JSON.stringify(registros));
+            localStorage.setItem('eco_registros_v3', JSON.stringify(registros));
             atualizarPainel();
-            adicionarNotificacao('Registro Removido', 'Uma ocorrência foi excluída do sistema.');
         }
 
         function filtrarFeed(nivel) {
             filtroAtual = nivel;
-            ['Todos', 'Crítico', 'Alto', 'Baixo'].forEach(n => {
+            ['Todos', 'Crítico', 'Baixo'].forEach(n => {
                 const btn = document.getElementById(`filtro-${n}`);
-                if (n === nivel) {
-                    btn.className = "px-3 py-1 rounded-xl text-xs font-medium bg-emerald-600 text-white transition";
-                } else {
-                    btn.className = "px-3 py-1 rounded-xl text-xs font-medium bg-[#142f21] text-slate-300 hover:bg-[#1b3a2a] transition";
+                if (btn) {
+                    btn.className = n === nivel ? "px-2.5 py-1 rounded-xl text-[10px] font-medium bg-emerald-600 text-white transition" : "px-2.5 py-1 rounded-xl text-[10px] font-medium bg-[#142f21] text-slate-300 transition";
                 }
             });
             atualizarPainel();
@@ -271,7 +246,7 @@
             }
 
             if (filtrados.length === 0) {
-                container.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">Nenhum registro encontrado para o filtro "${filtroAtual}".</p>`;
+                container.innerHTML = `<p class="text-[11px] text-slate-500 text-center py-4">Nenhum registro encontrado.</p>`;
                 return;
             }
 
@@ -281,23 +256,22 @@
                 if (r.severidade === 'Alto') corBadge = 'bg-orange-500/10 text-orange-400 border-orange-500/30';
 
                 return `
-                    <div class="bg-[#07130d] border border-[#1b3a2a] p-4 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 transition hover:border-emerald-500/40">
-                        <div class="space-y-1">
-                            <div class="flex items-center gap-2">
+                    <div class="bg-[#07130d] border border-[#1b3a2a] p-3 rounded-xl space-y-1.5">
+                        <div class="flex justify-between items-start">
+                            <div>
                                 <h4 class="text-xs font-bold text-white">${r.tipo}</h4>
-                                <span class="text-[10px] text-slate-500">• ${r.local}</span>
+                                <span class="text-[10px] text-slate-400">📍 ${r.local}</span>
                             </div>
-                            <p class="text-xs text-slate-300">${r.descricao}</p>
-                            <span class="text-[10px] text-slate-500 block">Registrado em: ${r.data}</span>
-                        </div>
-
-                        <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-[#1b3a2a]">
-                            <select onchange="mudarSeveridadeManual(${r.id}, this.value)" class="px-2.5 py-1 rounded-xl text-[11px] font-semibold border ${corBadge} bg-[#0f2318] outline-none cursor-pointer">
+                            <select onchange="mudarSeveridadeManual(${r.id}, this.value)" class="px-2 py-0.5 rounded-lg text-[10px] font-semibold border ${corBadge} bg-[#0f2318] outline-none cursor-pointer">
                                 <option value="Crítico" ${r.severidade === 'Crítico' ? 'selected' : ''}>Crítico</option>
                                 <option value="Alto" ${r.severidade === 'Alto' ? 'selected' : ''}>Alto</option>
                                 <option value="Baixo" ${r.severidade === 'Baixo' ? 'selected' : ''}>Baixo</option>
                             </select>
-                            <button onclick="excluirRegistro(${r.id})" class="text-[11px] text-red-400 hover:underline px-2 py-1">Excluir</button>
+                        </div>
+                        <p class="text-[11px] text-slate-300">${r.descricao}</p>
+                        <div class="flex justify-between items-center pt-1 border-t border-[#1b3a2a]/50 text-[9px] text-slate-500">
+                            <span>🕒 ${r.data}</span>
+                            <button onclick="excluirRegistro(${r.id})" class="text-red-400 hover:underline">Excluir</button>
                         </div>
                     </div>
                 `;
@@ -306,7 +280,7 @@
 
         function adicionarNotificacao(titulo, mensagem) {
             notificacoes.unshift({ titulo, mensagem, hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) });
-            localStorage.setItem('eco_notif_v2', JSON.stringify(notificacoes));
+            localStorage.setItem('eco_notif_v3', JSON.stringify(notificacoes));
             atualizarNotificacoesUI();
         }
 
@@ -325,9 +299,6 @@
                         <p class="text-slate-300 text-[11px]">${n.mensagem}</p>
                     </li>
                 `).join('');
-            } else {
-                badge.classList.add('hidden');
-                lista.innerHTML = `<li class="p-3 text-slate-400 text-center">Nenhuma nova notificação.</li>`;
             }
         }
 
@@ -337,11 +308,10 @@
 
         function limparNotificacoes() {
             notificacoes = [];
-            localStorage.setItem('eco_notif_v2', JSON.stringify(notificacoes));
+            localStorage.setItem('eco_notif_v3', JSON.stringify(notificacoes));
             atualizarNotificacoesUI();
         }
 
-        // Inicializa dados na tela
         atualizarPainel();
         atualizarNotificacoesUI();
     </script>
