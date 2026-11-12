@@ -43,7 +43,7 @@
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
                 <h2 class="text-2xl font-bold text-white">Painel de Monitoramento</h2>
-                <p class="text-sm text-slate-400">Classificação automática por palavras-chave.</p>
+                <p class="text-sm text-slate-400">Classificação automática por palavras-chave[span_1](start_span)[span_1](end_span).</p>
             </div>
             
             <!-- ÁREA DE STATUS E SININHO DE NOTIFICAÇÕES -->
@@ -83,7 +83,7 @@
                 <div class="text-3xl font-bold text-emerald-400 mt-2">94.8%</div>
             </div>
             <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl shadow-sm">
-                <span class="text-xs text-slate-400 font-medium">Qualidade do Air (AQI)</span>
+                <span class="text-xs text-slate-400 font-medium">Qualidade do Ar (AQI)</span>
                 <div class="text-3xl font-bold text-blue-400 mt-2">Bom (34)</div>
             </div>
             <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl shadow-sm">
@@ -96,9 +96,8 @@
         <div id="registrar" class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-sm mb-8 scroll-mt-6">
             <h3 class="text-lg font-semibold text-white mb-4">Registar Ocorrência / Denúncia</h3>
             
-            <!-- AVISO VISUAL PARA TESTAR SE O BOTÃO RESPONDE -->
             <div id="aviso-teste" class="mb-4 p-3 bg-emerald-900/50 border border-emerald-500 rounded-lg text-xs text-emerald-300 hidden">
-                ✅ Botão clicado com sucesso! A enviar...
+                ✅ Ocorrência processada com sucesso!
             </div>
 
             <form id="formulario-ocorrencia" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -153,14 +152,33 @@
         const cardTotal = document.getElementById('card-total');
         const cardCriticos = document.getElementById('card-criticos');
 
+        // FUNÇÃO DE CLASSIFICAÇÃO CORRIGIDA (Remove acentos, lowerCase e abrange todas as palavras-chave)
         function classificarSeveridade(texto) {
-            const t = texto.toLowerCase();
-            if (t.includes('incêndio') || t.includes('incendio') || t.includes('fogo') || t.includes('químico') || t.includes('tóxico') || t.includes('desmatamento')) {
+            if (!texto) return 'Baixo';
+
+            const textoNormalizado = texto
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "");
+
+            const palavrasAlto = [
+                'vazamento', 'incendio', 'fogo', 'explosao', 'toxico', 
+                'envenenamento', 'morte', 'emergencia', 'esgoto', 'quimico'
+            ];
+
+            const palavrasMedio = [
+                'desmatamento', 'lixo', 'poluicao', 'oleo', 'fumaca', 
+                'cheiro', 'contaminacao', 'buraco', 'rio', 'entulho'
+            ];
+
+            if (palavrasAlto.some(palavra => textoNormalizado.includes(palavra))) {
                 return 'Alto';
             }
-            if (t.includes('esgoto') || t.includes('rio') || t.includes('fumaça') || t.includes('entulho')) {
+
+            if (palavrasMedio.some(palavra => textoNormalizado.includes(palavra))) {
                 return 'Médio';
             }
+
             return 'Baixo';
         }
 
@@ -339,7 +357,9 @@
                 const tipo = document.getElementById("tipo").value;
                 const local = document.getElementById("local").value;
                 const descricao = document.getElementById("descricao").value;
-                const severidade = window.classificarSeveridade(tipo + " " + descricao);
+                
+                // Combina tipo e descrição para analisar as palavras-chave corretamente
+                const severidade = classificarSeveridade(tipo + " " + descricao);
                 const data = new Date().toLocaleString('pt-BR');
 
                 const dadosOcorrencia = {
@@ -352,14 +372,14 @@
 
                 try {
                     await addDoc(collection(db, "denuncias"), dadosOcorrencia);
-                    
                     window.adicionarRegistroLocal(dadosOcorrencia);
-
-                    alert("✅ Ocorrência salva com sucesso no Firebase!");
+                    alert(`✅ Ocorrência salva com sucesso como nível: ${severidade}`);
                     formulario.reset();
                 } catch (error) {
-                    console.error("Erro: ", error);
-                    alert("❌ Erro ao salvar: " + error.message);
+                    console.error("Erro Firebase: ", error);
+                    window.adicionarRegistroLocal(dadosOcorrencia);
+                    alert(`⚠️ Salvo localmente como nível: ${severidade} (Aviso: ${error.message})`);
+                    formulario.reset();
                 }
             });
         }
