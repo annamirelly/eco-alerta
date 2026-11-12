@@ -1,388 +1,349 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="scroll-smooth">
+<html lang="pt-BR" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoAlerta - Painel de Monitoramento</title>
+    <title>EcoAlerta - Monitoramento Ambiental</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        eco: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            900: '#064e3b',
+                            950: '#022c22'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans antialiased min-h-screen flex flex-col md:flex-row">
+<body class="bg-[#07130d] text-slate-100 font-sans antialiased min-h-screen flex flex-col pb-20 md:pb-0">
 
-    <!-- NOTIFICAÇÃO FLUTUANTE (TOAST) -->
-    <div id="toast-notificacao" class="fixed bottom-5 right-5 z-50 hidden bg-slate-800 border border-emerald-500 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 transition-all duration-300">
-        <span class="text-xl">🔔</span>
-        <div>
-            <p id="toast-titulo" class="text-xs font-bold text-emerald-400">Nova Notificação</p>
-            <p id="toast-mensagem" class="text-xs text-slate-300">Ação realizada com sucesso.</p>
+    <!-- CABEÇALHO -->
+    <header class="bg-[#0f2318] border-b border-[#1b3a2a] px-4 py-3.5 sticky top-0 z-40 flex justify-between items-center shadow-md">
+        <div class="flex items-center gap-3">
+            <div class="bg-emerald-500/10 border border-emerald-500/30 p-2 rounded-xl text-emerald-400 font-bold text-lg">🌿</div>
+            <div>
+                <h1 class="text-base font-bold tracking-wide text-white flex items-center gap-2">
+                    EcoAlerta <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/30">v2.4 Live</span>
+                </h1>
+                <p class="text-[11px] text-slate-400">GreenPulse Engine • Monitoramento Inteligente</p>
+            </div>
         </div>
-    </div>
 
-    <!-- MENU LATERAL -->
-    <aside class="w-full md:w-64 bg-slate-800 border-r border-slate-700 p-6 flex flex-col justify-between md:fixed md:h-screen">
-        <div>
-            <div class="flex items-center gap-3 mb-8">
-                <div class="bg-emerald-500 p-2 rounded-lg text-slate-900 font-bold">🌿</div>
-                <div>
-                    <h1 class="text-xl font-bold tracking-wide">EcoAlerta</h1>
-                    <span class="text-xs text-emerald-400">GreenPulse Engine v2.4</span>
+        <div class="flex items-center gap-2.5">
+            <!-- NOTIFICAÇÕES -->
+            <div class="relative">
+                <button onclick="alternarNotificacoes()" class="p-2 bg-[#142f21] border border-[#224a35] hover:border-emerald-500/50 rounded-xl text-slate-300 transition relative">
+                    🔔
+                    <span id="badge-notif" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full">0</span>
+                </button>
+                <div id="painel-notif" class="hidden absolute right-0 mt-2 w-72 bg-[#0f2318] border border-[#1b3a2a] rounded-2xl shadow-2xl z-50 overflow-hidden text-xs">
+                    <div class="p-3 border-b border-[#1b3a2a] flex justify-between items-center bg-[#142f21]">
+                        <span class="font-bold text-white">Notificações</span>
+                        <button onclick="limparNotificacoes()" class="text-[10px] text-emerald-400 hover:underline">Limpar</button>
+                    </div>
+                    <ul id="lista-notif" class="max-h-56 overflow-y-auto divide-y divide-[#1b3a2a]">
+                        <li class="p-3 text-slate-400 text-center">Nenhuma nova notificação.</li>
+                    </ul>
                 </div>
             </div>
-            <nav class="space-y-2">
-                <a href="#dashboard" class="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-500 transition">📊 Dashboard</a>
-                <a href="#registrar" class="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 text-slate-300 transition">⚠️ Nova Ocorrência</a>
-                <a href="#historico" class="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 text-slate-300 transition">📜 Histórico de Registros</a>
-            </nav>
+            <div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-400">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> IA Ativa
+            </div>
         </div>
-        <div class="text-xs text-slate-500 mt-6 pt-4 border-t border-slate-700">
-            Sistema de Monitoramento Ambiental & IA
-        </div>
-    </aside>
+    </header>
 
     <!-- CONTEÚDO PRINCIPAL -->
-    <main class="flex-1 p-6 md:p-10 md:ml-64 overflow-y-auto" id="dashboard">
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-            <div>
-                <h2 class="text-2xl font-bold text-white">Painel de Monitoramento</h2>
-                <p class="text-sm text-slate-400">Classificação automática por palavras-chave[span_1](start_span)[span_1](end_span).</p>
-            </div>
-            
-            <!-- ÁREA DE STATUS E SININHO DE NOTIFICAÇÕES -->
-            <div class="flex items-center gap-3">
-                <div class="relative">
-                    <button id="btn-notificacoes" onclick="alternarPainelNotificacoes()" class="bg-slate-800 border border-slate-700 hover:border-emerald-500 p-2 rounded-lg text-slate-300 transition relative">
-                        🔔
-                        <span id="badge-notificacoes" class="hidden absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">0</span>
-                    </button>
+    <main class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 space-y-6">
 
-                    <!-- DROPDOWN DE NOTIFICAÇÕES -->
-                    <div id="painel-notificacoes" class="hidden absolute right-0 mt-2 w-80 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-40 overflow-hidden">
-                        <div class="p-3 border-b border-slate-700 flex justify-between items-center">
-                            <span class="text-xs font-bold text-white">Notificações do Sistema</span>
-                            <button onclick="limparNotificacoes()" class="text-[11px] text-emerald-400 hover:underline">Limpar tudo</button>
-                        </div>
-                        <ul id="lista-notificacoes" class="max-h-60 overflow-y-auto divide-y divide-slate-700 text-xs">
-                            <li class="p-3 text-slate-500 text-center">Nenhuma notificação no momento.</li>
-                        </ul>
+        <!-- CARTÕES DE ESTATÍSTICAS -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-[#0f2318] border border-[#1b3a2a] p-4 rounded-2xl shadow-sm">
+                <span class="text-[11px] text-slate-400 font-medium">Total Registros</span>
+                <div id="stat-total" class="text-2xl font-bold text-white mt-1">0</div>
+            </div>
+            <div class="bg-[#0f2318] border border-[#1b3a2a] p-4 rounded-2xl shadow-sm">
+                <span class="text-[11px] text-slate-400 font-medium">Alertas Críticos</span>
+                <div id="stat-criticos" class="text-2xl font-bold text-red-400 mt-1">0</div>
+            </div>
+            <div class="bg-[#0f2318] border border-[#1b3a2a] p-4 rounded-2xl shadow-sm">
+                <span class="text-[11px] text-slate-400 font-medium">Acurácia IA</span>
+                <div class="text-2xl font-bold text-emerald-400 mt-1">94.8%</div>
+            </div>
+            <div class="bg-[#0f2318] border border-[#1b3a2a] p-4 rounded-2xl shadow-sm">
+                <span class="text-[11px] text-slate-400 font-medium">Qualidade do Ar</span>
+                <div class="text-2xl font-bold text-blue-400 mt-1">Bom (34)</div>
+            </div>
+        </div>
+
+        <!-- FORMULÁRIO DE CADASTRO -->
+        <section id="secao-registrar" class="bg-[#0f2318] border border-[#1b3a2a] p-5 md:p-6 rounded-2xl shadow-md">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <span>⚠️</span> Registar Nova Ocorrência Ambiental
+                </h2>
+                <span id="preview-tag-ia" class="text-[10px] px-2.5 py-1 rounded-full border bg-emerald-500/10 text-emerald-400 border-emerald-500/30 transition-all">
+                    IA: Aguardando texto...
+                </span>
+            </div>
+
+            <form id="form-alerta" onsubmit="salvarOcorrencia(event)" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Título / Tipo de Ocorrência</label>
+                        <input type="text" id="input-tipo" required placeholder="Ex: Incêndio na mata, Vazamento de óleo" class="w-full bg-[#07130d] border border-[#1b3a2a] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Localização</label>
+                        <input type="text" id="input-local" required placeholder="Ex: Zona Industrial, Margem do Rio" class="w-full bg-[#07130d] border border-[#1b3a2a] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 transition">
                     </div>
                 </div>
 
-                <div id="status-api" class="bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg text-xs text-emerald-400">
-                    🟢 Engine IA Ativa
-                </div>
-            </div>
-        </header>
-
-        <!-- CARTÕES DE INDICADORES -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl shadow-sm">
-                <span class="text-xs text-slate-400 font-medium">Total de Registros</span>
-                <div id="card-total" class="text-3xl font-bold text-white mt-2">0</div>
-            </div>
-            <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl shadow-sm">
-                <span class="text-xs text-slate-400 font-medium">Acurácia da IA</span>
-                <div class="text-3xl font-bold text-emerald-400 mt-2">94.8%</div>
-            </div>
-            <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl shadow-sm">
-                <span class="text-xs text-slate-400 font-medium">Qualidade do Ar (AQI)</span>
-                <div class="text-3xl font-bold text-blue-400 mt-2">Bom (34)</div>
-            </div>
-            <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl shadow-sm">
-                <span class="text-xs text-slate-400 font-medium">Alertas Críticos (Alto)</span>
-                <div id="card-criticos" class="text-3xl font-bold text-red-400 mt-2">0</div>
-            </div>
-        </div>
-
-        <!-- FORMULÁRIO DE REGISTRO -->
-        <div id="registrar" class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-sm mb-8 scroll-mt-6">
-            <h3 class="text-lg font-semibold text-white mb-4">Registar Ocorrência / Denúncia</h3>
-            
-            <div id="aviso-teste" class="mb-4 p-3 bg-emerald-900/50 border border-emerald-500 rounded-lg text-xs text-emerald-300 hidden">
-                ✅ Ocorrência processada com sucesso!
-            </div>
-
-            <form id="formulario-ocorrencia" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs text-slate-400 mb-1">Título / Tipo de Ocorrência</label>
-                    <input type="text" id="tipo" required placeholder="Ex: Incêndio na mata, Lixo no rio" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    <label class="block text-xs text-slate-400 mb-1">Descrição Detalhada (Analisada automaticamente pela IA)</label>
+                    <textarea id="input-descricao" rows="3" required oninput="testarClassificacaoTempoReal()" placeholder="Descreva o incidente em detalhes..." class="w-full bg-[#07130d] border border-[#1b3a2a] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 transition"></textarea>
                 </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Localização</label>
-                    <input type="text" id="local" required placeholder="Ex: R. Principal, Bairro Centro" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
-                </div>
-                <div class="md:col-span-2">
-                    <label class="block text-xs text-slate-400 mb-1">Descrição Detalhada</label>
-                    <textarea id="descricao" required rows="3" placeholder="Descreva a ocorrência..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"></textarea>
-                </div>
-                <div class="md:col-span-2 flex justify-end">
-                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-6 py-2 rounded-lg text-sm transition">
-                        Classificar e Salvar Ocorrência
+
+                <div class="flex justify-end gap-2 pt-1">
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition shadow-lg shadow-emerald-900/40">
+                        Analisar e Publicar Alerta
                     </button>
                 </div>
             </form>
-        </div>
+        </section>
 
-        <!-- TABELA DE HISTÓRICO -->
-        <div id="historico" class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-sm mb-8 scroll-mt-6">
-            <h3 class="text-lg font-semibold text-white mb-4">Últimos Registros e Histórico</h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-sm">
-                    <thead>
-                        <tr class="border-b border-slate-700 text-slate-400 text-xs">
-                            <th class="py-3 px-4">Data/Hora</th>
-                            <th class="py-3 px-4">Ocorrência</th>
-                            <th class="py-3 px-4">Descrição</th>
-                            <th class="py-3 px-4">Local</th>
-                            <th class="py-3 px-4">Severidade (Editável)</th>
-                            <th class="py-3 px-4 text-right">Ação</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabela-corpo" class="divide-y divide-slate-700 text-slate-300"></tbody>
-                </table>
+        <!-- HISTÓRICO / FEED -->
+        <section id="secao-historico" class="bg-[#0f2318] border border-[#1b3a2a] p-5 md:p-6 rounded-2xl shadow-md space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <span>📜</span> Feed de Ocorrências
+                </h3>
+                <div class="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+                    <button onclick="filtrarFeed('Todos')" id="filtro-Todos" class="px-3 py-1 rounded-xl text-xs font-medium bg-emerald-600 text-white transition">Todos</button>
+                    <button onclick="filtrarFeed('Crítico')" id="filtro-Crítico" class="px-3 py-1 rounded-xl text-xs font-medium bg-[#142f21] text-slate-300 hover:bg-[#1b3a2a] transition">Crítico</button>
+                    <button onclick="filtrarFeed('Alto')" id="filtro-Alto" class="px-3 py-1 rounded-xl text-xs font-medium bg-[#142f21] text-slate-300 hover:bg-[#1b3a2a] transition">Alto</button>
+                    <button onclick="filtrarFeed('Baixo')" id="filtro-Baixo" class="px-3 py-1 rounded-xl text-xs font-medium bg-[#142f21] text-slate-300 hover:bg-[#1b3a2a] transition">Baixo</button>
+                </div>
             </div>
-        </div>
+
+            <div id="feed-container" class="space-y-3">
+                <p class="text-xs text-slate-500 text-center py-6">Nenhum registro encontrado no sistema.</p>
+            </div>
+        </section>
     </main>
 
-    <!-- SCRIPTS -->
+    <!-- NAVEGAÇÃO INFERIOR MOBILE (Estilo Lovable) -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[#0f2318]/95 backdrop-blur border-t border-[#1b3a2a] p-2 px-6 flex justify-around items-center z-40">
+        <a href="#secao-registrar" class="flex flex-col items-center text-emerald-400 text-[10px] font-medium">
+            <span class="text-base">📊</span> Dashboard
+        </a>
+        <a href="#secao-registrar" class="flex flex-col items-center text-slate-400 hover:text-white text-[10px] font-medium">
+            <span class="text-base">⚠️</span> Registrar
+        </a>
+        <a href="#secao-historico" class="flex flex-col items-center text-slate-400 hover:text-white text-[10px] font-medium">
+            <span class="text-base">📜</span> Histórico
+        </a>
+    </nav>
+
+    <!-- SCRIPT DE LÓGICA E CLASSIFICAÇÃO -->
     <script>
-        let registros = JSON.parse(localStorage.getItem('eco_registros')) || [];
-        let notificacoes = JSON.parse(localStorage.getItem('eco_notificacoes')) || [];
-        let naoLidas = 0;
+        let registros = JSON.parse(localStorage.getItem('eco_registros_v2')) || [];
+        let notificacoes = JSON.parse(localStorage.getItem('eco_notif_v2')) || [];
+        let filtroAtual = 'Todos';
 
-        const tabelaCorpo = document.getElementById('tabela-corpo');
-        const cardTotal = document.getElementById('card-total');
-        const cardCriticos = document.getElementById('card-criticos');
+        // MOTOR DE CLASSIFICAÇÃO POR PALAVRAS-CHAVE (Corrigido e Abarcando Acentos)
+        function classificarSeveridade(textoCompleto) {
+            if (!textoCompleto) return { nivel: 'Baixo', cor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' };
 
-        // FUNÇÃO DE CLASSIFICAÇÃO CORRIGIDA (Remove acentos, lowerCase e abrange todas as palavras-chave)
-        function classificarSeveridade(texto) {
-            if (!texto) return 'Baixo';
-
-            const textoNormalizado = texto
+            const texto = textoCompleto
                 .toLowerCase()
                 .normalize("NFD")
                 .replace(/[\u0300-\u036f]/g, "");
 
-            const palavrasAlto = [
-                'vazamento', 'incendio', 'fogo', 'explosao', 'toxico', 
-                'envenenamento', 'morte', 'emergencia', 'esgoto', 'quimico'
-            ];
+            const criticas = ['vazamento', 'incendio', 'fogo', 'explosao', 'toxico', 'envenenamento', 'morte', 'emergencia', 'esgoto', 'quimico'];
+            const altas = ['desmatamento', 'lixo', 'poluicao', 'oleo', 'fumaca', 'cheiro', 'contaminacao', 'buraco', 'entulho', 'residuo'];
 
-            const palavrasMedio = [
-                'desmatamento', 'lixo', 'poluicao', 'oleo', 'fumaca', 
-                'cheiro', 'contaminacao', 'buraco', 'rio', 'entulho'
-            ];
-
-            if (palavrasAlto.some(palavra => textoNormalizado.includes(palavra))) {
-                return 'Alto';
+            for (let p of criticas) {
+                if (texto.includes(p)) {
+                    return { nivel: 'Crítico', cor: 'bg-red-500/10 text-red-400 border-red-500/30' };
+                }
             }
 
-            if (palavrasMedio.some(palavra => textoNormalizado.includes(palavra))) {
-                return 'Médio';
+            for (let p of altas) {
+                if (texto.includes(p)) {
+                    return { nivel: 'Alto', cor: 'bg-orange-500/10 text-orange-400 border-orange-500/30' };
+                }
             }
 
-            return 'Baixo';
+            return { nivel: 'Baixo', cor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' };
         }
 
-        function obterClasseSeveridade(sev) {
-            if (sev === 'Alto') return 'bg-red-500/10 text-red-400 border-red-500/40';
-            if (sev === 'Médio') return 'bg-amber-500/10 text-amber-400 border-amber-500/40';
-            return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/40';
+        function testarClassificacaoTempoReal() {
+            const titulo = document.getElementById('input-tipo').value;
+            const desc = document.getElementById('input-descricao').value;
+            const res = classificarSeveridade(titulo + " " + desc);
+            const badge = document.getElementById('preview-tag-ia');
+            badge.className = `text-[10px] px-2.5 py-1 rounded-full border font-semibold ${res.cor}`;
+            badge.innerText = `IA Classificou: ${res.nivel}`;
         }
 
-        function adicionarNotificacao(titulo, mensagem) {
-            const novaNotif = {
-                titulo,
-                mensagem,
-                hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+        function salvarOcorrencia(e) {
+            e.preventDefault();
+            const tipo = document.getElementById('input-tipo').value;
+            const local = document.getElementById('input-local').value;
+            const descricao = document.getElementById('input-descricao').value;
+
+            const classificacao = classificarSeveridade(tipo + " " + descricao);
+
+            const novoRegistro = {
+                id: Date.now(),
+                tipo,
+                local,
+                descricao,
+                severidade: classificacao.nivel,
+                data: new Date().toLocaleString('pt-BR')
             };
-            notificacoes.unshift(novaNotif);
-            localStorage.setItem('eco_notificacoes', JSON.stringify(notificacoes));
+
+            registros.unshift(novoRegistro);
+            localStorage.setItem('eco_registros_v2', JSON.stringify(registros));
+
+            adicionarNotificacao('Nova Ocorrência', `"${tipo}" classificado como ${classificacao.nivel}.`);
             
-            naoLidas++;
-            atualizarNotificacoesUI();
-            mostrarToast(titulo, mensagem);
+            document.getElementById('form-alerta').reset();
+            document.getElementById('preview-tag-ia').className = "text-[10px] px-2.5 py-1 rounded-full border bg-emerald-500/10 text-emerald-400 border-emerald-500/30";
+            document.getElementById('preview-tag-ia').innerText = "IA: Aguardando texto...";
+
+            atualizarPainel();
         }
 
-        function mostrarToast(titulo, mensagem) {
-            const toast = document.getElementById('toast-notificacao');
-            document.getElementById('toast-titulo').innerText = titulo;
-            document.getElementById('toast-mensagem').innerText = mensagem;
-            
-            toast.classList.remove('hidden');
-            setTimeout(() => {
-                toast.classList.add('hidden');
-            }, 4000);
+        function mudarSeveridadeManual(id, novaSev) {
+            const reg = registros.find(r => r.id === id);
+            if (reg) {
+                const antigo = reg.severidade;
+                reg.severidade = novaSev;
+                localStorage.setItem('eco_registros_v2', JSON.stringify(registros));
+                adicionarNotificacao('Severidade Alterada', `"${reg.tipo}" mudou de ${antigo} para ${novaSev}.`);
+                atualizarPainel();
+            }
         }
 
-        function atualizarNotificacoesUI() {
-            const badge = document.getElementById('badge-notificacoes');
-            const lista = document.getElementById('lista-notificacoes');
+        function excluirRegistro(id) {
+            registros = registros.filter(r => r.id !== id);
+            localStorage.setItem('eco_registros_v2', JSON.stringify(registros));
+            atualizarPainel();
+            adicionarNotificacao('Registro Removido', 'Uma ocorrência foi excluída do sistema.');
+        }
 
-            if (naoLidas > 0) {
-                badge.innerText = naoLidas;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
+        function filtrarFeed(nivel) {
+            filtroAtual = nivel;
+            ['Todos', 'Crítico', 'Alto', 'Baixo'].forEach(n => {
+                const btn = document.getElementById(`filtro-${n}`);
+                if (n === nivel) {
+                    btn.className = "px-3 py-1 rounded-xl text-xs font-medium bg-emerald-600 text-white transition";
+                } else {
+                    btn.className = "px-3 py-1 rounded-xl text-xs font-medium bg-[#142f21] text-slate-300 hover:bg-[#1b3a2a] transition";
+                }
+            });
+            atualizarPainel();
+        }
+
+        function atualizarPainel() {
+            const container = document.getElementById('feed-container');
+            const statTotal = document.getElementById('stat-total');
+            const statCriticos = document.getElementById('stat-criticos');
+
+            statTotal.innerText = registros.length;
+            statCriticos.innerText = registros.filter(r => r.severidade === 'Crítico' || r.severidade === 'Alto').length;
+
+            let filtrados = registros;
+            if (filtroAtual !== 'Todos') {
+                filtrados = registros.filter(r => r.severidade === filtroAtual);
             }
 
-            if (notificacoes.length === 0) {
-                lista.innerHTML = `<li class="p-3 text-slate-500 text-center">Nenhuma notificação no momento.</li>`;
+            if (filtrados.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">Nenhum registro encontrado para o filtro "${filtroAtual}".</p>`;
                 return;
             }
 
-            lista.innerHTML = notificacoes.map(n => `
-                <li class="p-3 hover:bg-slate-700/50 transition">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-bold text-emerald-400">${n.titulo}</span>
-                        <span class="text-[10px] text-slate-500">${n.hora}</span>
+            container.innerHTML = filtrados.map(r => {
+                let corBadge = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+                if (r.severidade === 'Crítico') corBadge = 'bg-red-500/10 text-red-400 border-red-500/30';
+                if (r.severidade === 'Alto') corBadge = 'bg-orange-500/10 text-orange-400 border-orange-500/30';
+
+                return `
+                    <div class="bg-[#07130d] border border-[#1b3a2a] p-4 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 transition hover:border-emerald-500/40">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <h4 class="text-xs font-bold text-white">${r.tipo}</h4>
+                                <span class="text-[10px] text-slate-500">• ${r.local}</span>
+                            </div>
+                            <p class="text-xs text-slate-300">${r.descricao}</p>
+                            <span class="text-[10px] text-slate-500 block">Registrado em: ${r.data}</span>
+                        </div>
+
+                        <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-[#1b3a2a]">
+                            <select onchange="mudarSeveridadeManual(${r.id}, this.value)" class="px-2.5 py-1 rounded-xl text-[11px] font-semibold border ${corBadge} bg-[#0f2318] outline-none cursor-pointer">
+                                <option value="Crítico" ${r.severidade === 'Crítico' ? 'selected' : ''}>Crítico</option>
+                                <option value="Alto" ${r.severidade === 'Alto' ? 'selected' : ''}>Alto</option>
+                                <option value="Baixo" ${r.severidade === 'Baixo' ? 'selected' : ''}>Baixo</option>
+                            </select>
+                            <button onclick="excluirRegistro(${r.id})" class="text-[11px] text-red-400 hover:underline px-2 py-1">Excluir</button>
+                        </div>
                     </div>
-                    <p class="text-slate-300">${n.mensagem}</p>
-                </li>
-            `).join('');
+                `;
+            }).join('');
         }
 
-        function alternarPainelNotificacoes() {
-            const painel = document.getElementById('painel-notificacoes');
-            painel.classList.toggle('hidden');
-            if (!painel.classList.contains('hidden')) {
-                naoLidas = 0;
-                atualizarNotificacoesUI();
+        function adicionarNotificacao(titulo, mensagem) {
+            notificacoes.unshift({ titulo, mensagem, hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) });
+            localStorage.setItem('eco_notif_v2', JSON.stringify(notificacoes));
+            atualizarNotificacoesUI();
+        }
+
+        function atualizarNotificacoesUI() {
+            const badge = document.getElementById('badge-notif');
+            const lista = document.getElementById('lista-notif');
+            if (notificacoes.length > 0) {
+                badge.innerText = notificacoes.length;
+                badge.classList.remove('hidden');
+                lista.innerHTML = notificacoes.map(n => `
+                    <li class="p-2.5 hover:bg-[#142f21]">
+                        <div class="flex justify-between font-bold text-emerald-400 mb-0.5">
+                            <span>${n.titulo}</span>
+                            <span class="text-[9px] text-slate-500">${n.hora}</span>
+                        </div>
+                        <p class="text-slate-300 text-[11px]">${n.mensagem}</p>
+                    </li>
+                `).join('');
+            } else {
+                badge.classList.add('hidden');
+                lista.innerHTML = `<li class="p-3 text-slate-400 text-center">Nenhuma nova notificação.</li>`;
             }
+        }
+
+        function alternarNotificacoes() {
+            document.getElementById('painel-notif').classList.toggle('hidden');
         }
 
         function limparNotificacoes() {
             notificacoes = [];
-            naoLidas = 0;
-            localStorage.setItem('eco_notificacoes', JSON.stringify(notificacoes));
+            localStorage.setItem('eco_notif_v2', JSON.stringify(notificacoes));
             atualizarNotificacoesUI();
         }
 
-        function editarSeveridade(index, novaSeveridade) {
-            const antigo = registros[index].severidade;
-            registros[index].severidade = novaSeveridade;
-            localStorage.setItem('eco_registros', JSON.stringify(registros));
-            atualizarPainel();
-            adicionarNotificacao(
-                'Severidade Atualizada',
-                `"${registros[index].tipo}" alterado de ${antigo} para ${novaSeveridade}.`
-            );
-        }
-
-        function atualizarPainel() {
-            tabelaCorpo.innerHTML = '';
-            if (registros.length === 0) {
-                tabelaCorpo.innerHTML = `<tr><td colspan="6" class="py-4 px-4 text-center text-slate-500">Nenhum registro no histórico.</td></tr>`;
-                cardTotal.innerText = '0';
-                cardCriticos.innerText = '0';
-                return;
-            }
-            let criticosCount = 0;
-            registros.forEach((reg, index) => {
-                if (!['Baixo', 'Médio', 'Alto'].includes(reg.severidade)) {
-                    reg.severidade = 'Baixo';
-                }
-                if (reg.severidade === 'Alto') criticosCount++;
-
-                const classeCor = obterClasseSeveridade(reg.severidade);
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="py-3 px-4 text-xs text-slate-400">${reg.data}</td>
-                    <td class="py-3 px-4 font-medium text-white">${reg.tipo}</td>
-                    <td class="py-3 px-4 text-xs text-slate-300 max-w-xs truncate">${reg.descricao}</td>
-                    <td class="py-3 px-4">${reg.local}</td>
-                    <td class="py-3 px-4">
-                        <select onchange="editarSeveridade(${index}, this.value)" class="px-2.5 py-1 rounded-full text-xs border font-medium bg-slate-900 focus:outline-none cursor-pointer ${classeCor}">
-                            <option value="Baixo" class="bg-slate-800 text-emerald-400" ${reg.severidade === 'Baixo' ? 'selected' : ''}>Baixo</option>
-                            <option value="Médio" class="bg-slate-800 text-amber-400" ${reg.severidade === 'Médio' ? 'selected' : ''}>Médio</option>
-                            <option value="Alto" class="bg-slate-800 text-red-400" ${reg.severidade === 'Alto' ? 'selected' : ''}>Alto</option>
-                        </select>
-                    </td>
-                    <td class="py-3 px-4 text-right"><button onclick="removerItem(${index})" class="text-xs text-red-400 hover:underline">Excluir</button></td>
-                `;
-                tabelaCorpo.appendChild(tr);
-            });
-            cardTotal.innerText = registros.length;
-            cardCriticos.innerText = criticosCount;
-        }
-
-        function removerItem(index) {
-            const removido = registros[index].tipo;
-            registros.splice(index, 1);
-            localStorage.setItem('eco_registros', JSON.stringify(registros));
-            atualizarPainel();
-            adicionarNotificacao('Registro Removido', `A ocorrência "${removido}" foi excluída.`);
-        }
-
-        window.adicionarRegistroLocal = function(novoReg) {
-            registros.unshift(novoReg);
-            localStorage.setItem('eco_registros', JSON.stringify(registros));
-            atualizarPainel();
-            adicionarNotificacao(
-                `Nova Ocorrência (${novoReg.severidade})`,
-                `${novoReg.tipo} registrado em ${novoReg.local}.`
-            );
-        };
-        window.classificarSeveridade = classificarSeveridade;
-
+        // Inicializa dados na tela
         atualizarPainel();
         atualizarNotificacoesUI();
-    </script>
-
-    <!-- FIREBASE -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCfAl_6TXkUnQcM-dfQ2GC1eI0NvvudP2M",
-            authDomain: "eco-alerta-333a6.firebaseapp.com",
-            projectId: "eco-alerta-333a6",
-            storageBucket: "eco-alerta-333a6.firebasestorage.app",
-            messagingSenderId: "583732087765",
-            appId: "1:583732087765:web:e9245099a93646d208cb5c"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        const formulario = document.getElementById("formulario-ocorrencia");
-        const avisoTeste = document.getElementById("aviso-teste");
-
-        if (formulario) {
-            formulario.addEventListener("submit", async (e) => {
-                e.preventDefault();
-                
-                if (avisoTeste) avisoTeste.classList.remove("hidden");
-
-                const tipo = document.getElementById("tipo").value;
-                const local = document.getElementById("local").value;
-                const descricao = document.getElementById("descricao").value;
-                
-                // Combina tipo e descrição para analisar as palavras-chave corretamente
-                const severidade = classificarSeveridade(tipo + " " + descricao);
-                const data = new Date().toLocaleString('pt-BR');
-
-                const dadosOcorrencia = {
-                    tipo,
-                    local,
-                    descricao,
-                    severidade,
-                    data
-                };
-
-                try {
-                    await addDoc(collection(db, "denuncias"), dadosOcorrencia);
-                    window.adicionarRegistroLocal(dadosOcorrencia);
-                    alert(`✅ Ocorrência salva com sucesso como nível: ${severidade}`);
-                    formulario.reset();
-                } catch (error) {
-                    console.error("Erro Firebase: ", error);
-                    window.adicionarRegistroLocal(dadosOcorrencia);
-                    alert(`⚠️ Salvo localmente como nível: ${severidade} (Aviso: ${error.message})`);
-                    formulario.reset();
-                }
-            });
-        }
     </script>
 </body>
 </html>
