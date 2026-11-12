@@ -812,5 +812,24 @@
         atualizarBadgeNotificacoes();
         atualizarAnaliseTempoReal();
     </script>
+    
+<!-- Meu código do Firebase  -->
+    <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBF5Wjcj2yZ0O68HHMlT73CPmhqTNJDC9A",
+  authDomain: "eco-alertas.firebaseapp.com",
+  projectId: "eco-alertas",
+  storageBucket: "eco-alertas.firebasestorage.app",
+  messagingSenderId: "92408617991",
+  appId: "1:92408617991:web:3d50d53831b026dff95ea2",
+  measurementId: "G-KBEVK2C1Z7"
+};
+
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+    </script>
 </body>
 </html>
