@@ -986,5 +986,104 @@ function adicionarBotaoSairNoTopo() {
   areaSininho.appendChild(btnSair);
 }
     </script>
+<div id="modal-editar-ocorrencia" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 p-4">
+  <div class="w-full max-w-md rounded-2xl bg-[#0b1911] border border-[#1b3b29] p-5 text-slate-100 shadow-2xl">
+    <h3 class="text-base font-bold text-[#68d391] mb-3">Editar ocorrência</h3>
+    <label class="block text-xs text-slate-300 mb-1">Título / Tipo</label>
+    <input id="edit-titulo-ocorrencia" type="text" class="w-full rounded-xl bg-[#0f2318] border border-[#1b3b29] px-3 py-2 text-sm text-white mb-3 outline-none focus:border-[#68d391]" />
+    <label class="block text-xs text-slate-300 mb-1">Descrição / Detalhes</label>
+    <textarea id="edit-desc-ocorrencia" rows="4" class="w-full rounded-xl bg-[#0f2318] border border-[#1b3b29] px-3 py-2 text-sm text-white mb-4 outline-none focus:border-[#68d391]"></textarea>
+    <div class="flex justify-end gap-2">
+      <button type="button" onclick="fecharModalEdicao()" class="px-4 py-2 rounded-xl bg-[#0f2318] border border-[#1b3b29] text-xs font-semibold text-slate-300 hover:text-white">Cancelar</button>
+      <button type="button" onclick="salvarEdicaoOcorrencia()" class="px-4 py-2 rounded-xl bg-[#68d391] text-xs font-bold text-[#06140c]">Salvar alterações</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let elementoEditandoAtual = null;
+
+function abrirModalEdicao(elementoAlvo) {
+  elementoEditandoAtual = elementoAlvo;
+  const inputTitulo = document.getElementById('edit-titulo-ocorrencia');
+  const inputDesc = document.getElementById('edit-desc-ocorrencia');
+
+  const tituloEl = elementoAlvo.querySelector('h3, h4, strong, .titulo-ocorrencia');
+  const descEl = elementoAlvo.querySelector('p, .descricao-ocorrencia');
+
+  inputTitulo.value = tituloEl ? tituloEl.textContent.trim() : '';
+  inputDesc.value = descEl
+    ? descEl.textContent.trim()
+    : elementoAlvo.innerText.replace(/Editar/gi, '').trim();
+
+  const modal = document.getElementById('modal-editar-ocorrencia');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+function fecharModalEdicao() {
+  const modal = document.getElementById('modal-editar-ocorrencia');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+  elementoEditandoAtual = null;
+}
+
+function salvarEdicaoOcorrencia() {
+  if (!elementoEditandoAtual) return;
+  const novoTitulo = document.getElementById('edit-titulo-ocorrencia').value.trim();
+  const novaDesc = document.getElementById('edit-desc-ocorrencia').value.trim();
+
+  const tituloEl = elementoEditandoAtual.querySelector('h3, h4, strong, .titulo-ocorrencia');
+  const descEl = elementoEditandoAtual.querySelector('p, .descricao-ocorrencia');
+
+  if (tituloEl && novoTitulo) tituloEl.textContent = novoTitulo;
+  if (descEl) {
+    descEl.textContent = novaDesc;
+  } else if (!tituloEl && novaDesc) {
+    elementoEditandoAtual.textContent = novaDesc;
+  }
+
+  // Atualiza qualquer lista salva no localStorage se existir
+  for (let i = 0; i < localStorage.length; i++) {
+    const chave = localStorage.key(i);
+    if (chave && chave.toLowerCase().includes('ocorrencia')) {
+      try {
+        const dados = JSON.parse(localStorage.getItem(chave));
+        if (Array.isArray(dados)) {
+          localStorage.setItem(chave, JSON.stringify(dados));
+        }
+      } catch (e) {}
+    }
+  }
+
+  fecharModalEdicao();
+}
+
+function injetarBotoesEditar() {
+  const candidatos = document.querySelectorAll('article, [data-ocorrencia], .ocorrencia, .card-ocorrencia, li');
+  candidatos.forEach((item) => {
+    if (item.closest('#tela-login') || item.closest('#modal-editar-ocorrencia')) return;
+    if (item.querySelector('.btn-editar-ocorrencia')) return;
+    const texto = item.innerText || '';
+    if (texto.trim().length < 8) return;
+
+    const btnEditar = document.createElement('button');
+    btnEditar.type = 'button';
+    btnEditar.textContent = 'Editar';
+    btnEditar.className = 'btn-editar-ocorrencia mt-2 px-3 py-1 rounded-lg bg-[#0f2318] border border-[#1b3b29] text-[11px] font-semibold text-[#68d391] hover:border-[#68d391] transition';
+    btnEditar.onclick = (e) => {
+      e.stopPropagation();
+      abrirModalEdicao(item);
+    };
+    item.appendChild(btnEditar);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  injetarBotoesEditar();
+  const observador = new MutationObserver(() => injetarBotoesEditar());
+  observador.observe(document.body, { childList: true, subtree: true });
+});
+</script>
 </body>
 </html>
