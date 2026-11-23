@@ -886,103 +886,105 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
     </script>
     <script>
-        let modoAuth = 'entrar';
+let modoAuth = 'entrar';
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const usuarioLogado = JSON.parse(localStorage.getItem('eco_alerta_sessao'));
-            if (usuarioLogado) {
-                liberarAcesso(usuarioLogado);
-            }
-            adicionarBotaoSairNoTopo();
-        });
+document.addEventListener('DOMContentLoaded', () => {
+  const usuarioLogado = JSON.parse(localStorage.getItem('eco_alerta_sessao'));
+  if (usuarioLogado) liberarAcesso(usuarioLogado);
+  adicionarBotaoSairNoTopo();
+});
 
-        function mudarModoLogin(modo) {
-            modoAuth = modo;
-            const tabEntrar = document.getElementById('tab-entrar');
-            const tabCadastrar = document.getElementById('tab-cadastrar');
-            const campoNome = document.getElementById('campo-nome');
-            const btnSubmit = document.getElementById('btn-auth-submit');
-            const subtitulo = document.getElementById('login-subtitulo');
-            const erro = document.getElementById('auth-erro');
+function mudarModoLogin(modo) {
+  modoAuth = modo;
+  const tabEntrar = document.getElementById('tab-entrar');
+  const tabCadastrar = document.getElementById('tab-cadastrar');
+  const campoNome = document.getElementById('campo-nome');
+  const btnSubmit = document.getElementById('btn-auth-submit');
+  const subtitulo = document.getElementById('login-subtitulo');
+  const erro = document.getElementById('auth-erro');
+  if (erro) erro.classList.add('hidden');
 
-            erro.classList.add('hidden');
+  if (modo === 'cadastrar') {
+    tabCadastrar.className = 'py-2 rounded-lg text-xs font-bold bg-[#68d391] text-[#06140c] transition';
+    tabEntrar.className = 'py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition';
+    campoNome.classList.remove('hidden');
+    btnSubmit.textContent = 'Criar conta e entrar';
+    subtitulo.textContent = 'Crie sua conta para registrar alertas';
+  } else {
+    tabEntrar.className = 'py-2 rounded-lg text-xs font-bold bg-[#68d391] text-[#06140c] transition';
+    tabCadastrar.className = 'py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition';
+    campoNome.classList.add('hidden');
+    btnSubmit.textContent = 'Entrar no sistema';
+    subtitulo.textContent = 'Entre para monitorar ocorrências ambientais';
+  }
+}
 
-            if (modo === 'cadastrar') {
-                tabCadastrar.className = 'py-2 rounded-lg text-xs font-bold bg-[#68d391] text-[#06140c] transition';
-                tabEntrar.className = 'py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition';
-                campoNome.classList.remove('hidden');
-                btnSubmit.textContent = 'Criar conta e entrar';
-                subtitulo.textContent = 'Crie sua conta para registrar alertas';
-            } else {
-                tabEntrar.className = 'py-2 rounded-lg text-xs font-bold bg-[#68d391] text-[#06140c] transition';
-                tabCadastrar.className = 'py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition';
-                campoNome.classList.add('hidden');
-                btnSubmit.textContent = 'Entrar no sistema';
-                subtitulo.textContent = 'Entre para monitorar ocorrências ambientais';
-            }
-        }
+function processarAutenticacao(event) {
+  event.preventDefault();
+  const nome = document.getElementById('auth-nome').value.trim();
+  const email = document.getElementById('auth-email').value.trim().toLowerCase();
+  const senha = document.getElementById('auth-senha').value;
+  let usuarios = JSON.parse(localStorage.getItem('eco_alerta_usuarios')) || [];
 
-        function processarAutenticacao(event) {
-            event.preventDefault();
-            const nome = document.getElementById('auth-nome').value.trim();
-            const email = document.getElementById('auth-email').value.trim().toLowerCase();
-            const senha = document.getElementById('auth-senha').value;
+  if (modoAuth === 'cadastrar') {
+    if (!nome) return mostrarErroAuth('Por favor, informe o seu nome.');
+    if (usuarios.some(u => u.email === email)) return mostrarErroAuth('Este e-mail já está cadastrado.');
+    const novoUsuario = { nome, email, senha };
+    usuarios.push(novoUsuario);
+    localStorage.setItem('eco_alerta_usuarios', JSON.stringify(usuarios));
+    localStorage.setItem('eco_alerta_sessao', JSON.stringify(novoUsuario));
+    liberarAcesso(novoUsuario);
+  } else {
+    const usuarioEncontrado = usuarios.find(u => u.email === email && u.senha === senha);
+    if (!usuarioEncontrado) return mostrarErroAuth('E-mail ou senha incorretos.');
+    localStorage.setItem('eco_alerta_sessao', JSON.stringify(usuarioEncontrado));
+    liberarAcesso(usuarioEncontrado);
+  }
+}
 
-            let usuarios = JSON.parse(localStorage.getItem('eco_alerta_usuarios')) || [];
+function entrarDemonstracao() {
+  const demo = { nome: 'Visitante', email: 'demo@ecoalerta.com' };
+  localStorage.setItem('eco_alerta_sessao', JSON.stringify(demo));
+  liberarAcesso(demo);
+}
 
-            if (modoAuth === 'cadastrar') {
-                if (!nome) {
-                    mostrarErroAuth('Por favor, informe o seu nome.');
-                    return;
-                }
-                if (usuarios.some(u => u.email === email)) {
-                    mostrarErroAuth('Este e-mail já está registado.');
-                    return;
-                }
-                const novoUsuario = { nome, email, senha };
-                usuarios.push(novoUsuario);
-                localStorage.setItem('eco_alerta_usuarios', JSON.stringify(usuarios));
-localStorage.setItem('eco_alerta_sessao', JSON.stringify(demo));
-            liberarAcesso(demo);
-        }
+function mostrarErroAuth(mensagem) {
+  const erro = document.getElementById('auth-erro');
+  if (erro) {
+    erro.textContent = mensagem;
+    erro.classList.remove('hidden');
+  }
+}
 
-        function mostrarErroAuth(mensagem) {
-            const erro = document.getElementById('auth-erro');
-            erro.textContent = mensagem;
-            erro.classList.remove('hidden');
-        }
+function liberarAcesso(usuario) {
+  const tela = document.getElementById('tela-login');
+  if (tela) tela.style.display = 'none';
+  const subtituloHeader = document.querySelector('header p');
+  if (subtituloHeader && usuario.nome) {
+    subtituloHeader.textContent = `OLÁ, ${usuario.nome.toUpperCase()}`;
+  }
+}
 
-        function liberarAcesso(usuario) {
-            document.getElementById('tela-login').classList.add('hidden');
-            const subtituloHeader = document.querySelector('header p');
-            if (subtituloHeader && usuario.nome) {
-                subtituloHeader.textContent = `OLÁ, ${usuario.nome.toUpperCase()}`;
-            }
-        }
+function sairDoSistema() {
+  localStorage.removeItem('eco_alerta_sessao');
+  const tela = document.getElementById('tela-login');
+  if (tela) tela.style.display = 'flex';
+  const senha = document.getElementById('auth-senha');
+  if (senha) senha.value = '';
+}
 
-        function sairDoSistema() {
-            localStorage.removeItem('eco_alerta_sessao');
-            document.getElementById('tela-login').classList.remove('hidden');
-            document.getElementById('auth-senha').value = '';
-        }
-
-        function adicionarBotaoSairNoTopo() {
-            const areaSininho = document.getElementById('btn-notificacoes')?.parentElement;
-            if (!areaSininho || document.getElementById('btn-sair')) return;
-
-            areaSininho.classList.add('flex', 'items-center', 'gap-2');
-            const btnSair = document.createElement('button');
-            btnSair.id = 'btn-sair';
-            btnSair.title = 'Sair da conta';
-            btnSair.onclick = sairDoSistema;
-            btnSair.className = 'w-11 h-11 rounded-2xl bg-[#0f2318] border border-[#1b3b29] hover:border-red-500/60 flex items-center justify-center text-slate-300 hover:text-red-400 transition';
-            btnSair.innerHTML = `
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                </svg>
-            `;
-            areaSininho.appendChild(btnSair);                
-        }
+function adicionarBotaoSairNoTopo() {
+  const areaSininho = document.getElementById('btn-notificacoes')?.parentElement;
+  if (!areaSininho || document.getElementById('btn-sair')) return;
+  areaSininho.classList.add('flex', 'items-center', 'gap-2');
+  const btnSair = document.createElement('button');
+  btnSair.id = 'btn-sair';
+  btnSair.title = 'Sair da conta';
+  btnSair.onclick = sairDoSistema;
+  btnSair.className = 'w-11 h-11 rounded-2xl bg-[#0f2318] border border-[#1b3b29] hover:border-red-500/60 flex items-center justify-center text-slate-300 hover:text-red-400 transition';
+  btnSair.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>`;
+  areaSininho.appendChild(btnSair);
+}
     </script>
 </body>
 </html>
