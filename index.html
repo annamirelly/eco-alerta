@@ -989,32 +989,86 @@ function adicionarBotaoSairNoTopo() {
 <div id="modal-editar-ocorrencia" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 p-4">
   <div class="w-full max-w-md rounded-2xl bg-[#0b1911] border border-[#1b3b29] p-5 text-slate-100 shadow-2xl">
     <h3 class="text-base font-bold text-[#68d391] mb-3">Editar ocorrência</h3>
-    <label class="block text-xs text-slate-300 mb-1">Título / Tipo</label>
-    <input id="edit-titulo-ocorrencia" type="text" class="w-full rounded-xl bg-[#0f2318] border border-[#1b3b29] px-3 py-2 text-sm text-white mb-3 outline-none focus:border-[#68d391]" />
-    <label class="block text-xs text-slate-300 mb-1">Descrição / Detalhes</label>
-    <textarea id="edit-desc-ocorrencia" rows="4" class="w-full rounded-xl bg-[#0f2318] border border-[#1b3b29] px-3 py-2 text-sm text-white mb-4 outline-none focus:border-[#68d391]"></textarea>
+
+    <label class="block text-xs text-slate-300 mb-1">Qual ocorrência deseja editar?</label>
+    <select id="select-ocorrencia-alvo" onchange="carregarOcorrenciaSelecionada()" class="w-full rounded-xl bg-[#0f2318] border border-[#1b3b29] px-3 py-2 text-xs text-white mb-3 outline-none focus:border-[#68d391]"></select>
+
+    <label class="block text-xs text-slate-300 mb-1">Texto da ocorrência</label>
+    <textarea id="edit-texto-ocorrencia" rows="5" class="w-full rounded-xl bg-[#0f2318] border border-[#1b3b29] px-3 py-2 text-sm text-white mb-4 outline-none focus:border-[#68d391]"></textarea>
+
     <div class="flex justify-end gap-2">
       <button type="button" onclick="fecharModalEdicao()" class="px-4 py-2 rounded-xl bg-[#0f2318] border border-[#1b3b29] text-xs font-semibold text-slate-300 hover:text-white">Cancelar</button>
-      <button type="button" onclick="salvarEdicaoOcorrencia()" class="px-4 py-2 rounded-xl bg-[#68d391] text-xs font-bold text-[#06140c]">Salvar alterações</button>
+      <button type="button" onclick="salvarEdicaoOcorrencia()" class="px-4 py-2 rounded-xl bg-[#68d391] text-xs font-bold text-[#06140c]">Salvar</button>
     </div>
   </div>
 </div>
 
 <script>
-let elementoEditandoAtual = null;
+let cartoesEncontrados = [];
+let cartaoAtual = null;
 
-function abrirModalEdicao(elementoAlvo) {
-  elementoEditandoAtual = elementoAlvo;
-  const inputTitulo = document.getElementById('edit-titulo-ocorrencia');
-  const inputDesc = document.getElementById('edit-desc-ocorrencia');
+function buscarCartoesOcorrencia() {
+  const todos = Array.from(document.querySelectorAll('div, article, li'));
+  const filtrados = todos.filter((el) => {
+    if (
+      el.id === 'tela-login' ||
+      el.id === 'modal-editar-ocorrencia' ||
+      el.closest('#tela-login') ||
+      el.closest('#modal-editar-ocorrencia') ||
+      el.closest('header') ||
+      el.closest('nav')
+    ) return false;
 
-  const tituloEl = elementoAlvo.querySelector('h3, h4, strong, .titulo-ocorrencia');
-  const descEl = elementoAlvo.querySelector('p, .descricao-ocorrencia');
+    const txt = (el.textContent || '').trim();
+    if (txt.length < 15 || txt.length > 500) return false;
+    if (!(txt.includes('IA ') || txt.includes('Rua ') || txt.includes('Queimada'))) return false;
 
-  inputTitulo.value = tituloEl ? tituloEl.textContent.trim() : '';
-  inputDesc.value = descEl
-    ? descEl.textContent.trim()
-    : (elementoAlvo.textContent || '').replace(/Editar/gi, '').trim();
+    const temFilhoIgual = Array.from(el.children).some((filho) => {
+      const ft = (filho.textContent || '').trim();
+      return ft.includes('IA ') || ft.includes('Rua ') || ft.includes('Queimada');
+    });
+    return !temFilhoIgual;
+  });
+
+  cartoesEncontrados = filtrados;
+  return filtrados;
+}
+
+function carregarOcorrenciaSelecionada() {
+  const select = document.getElementById('select-ocorrencia-alvo');
+  const textarea = document.getElementById('edit-texto-ocorrencia');
+  const idx = parseInt(select.value, 10);
+  cartaoAtual = cartoesEncontrados[idx] || null;
+
+  if (cartaoAtual) {
+    textarea.value = (cartaoAtual.innerText || cartaoAtual.textContent || '').trim();
+  } else {
+    textarea.value = '';
+  }
+}
+
+function abrirModalEdicao() {
+  const select = document.getElementById('select-ocorrencia-alvo');
+  const lista = buscarCartoesOcorrencia();
+  select.innerHTML = '';
+
+  if (lista.length === 0) {
+    const opt = document.createElement('option');
+    opt.value = '-1';
+    opt.textContent = 'Nenhuma ocorrência encontrada na tela';
+    select.appendChild(opt);
+    document.getElementById('edit-texto-ocorrencia').value = '';
+  } else {
+    lista.forEach((card, i) => {
+      const opt = document.createElement('option');
+      opt.value = String(i);
+      const resumo = (card.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 45);
+      opt.textContent = `Ocorrência ${i + 1}: ${resumo}`;
+      select.appendChild(opt);
+    });
+    select.value = '0';
+    carregarOcorrenciaSelecionada();
+  }
 
   const modal = document.getElementById('modal-editar-ocorrencia');
   if (modal) {
@@ -1029,67 +1083,30 @@ function fecharModalEdicao() {
     modal.classList.add('hidden');
     modal.classList.remove('flex');
   }
-  elementoEditandoAtual = null;
+  cartaoAtual = null;
 }
 
 function salvarEdicaoOcorrencia() {
-  if (!elementoEditandoAtual) return;
-  const novoTitulo = document.getElementById('edit-titulo-ocorrencia').value.trim();
-  const novaDesc = document.getElementById('edit-desc-ocorrencia').value.trim();
-
-  const tituloEl = elementoEditandoAtual.querySelector('h3, h4, strong, .titulo-ocorrencia');
-  const descEl = elementoEditandoAtual.querySelector('p, .descricao-ocorrencia');
-
-  if (tituloEl && novoTitulo) tituloEl.textContent = novoTitulo;
-  if (descEl) {
-    descEl.textContent = novaDesc;
-  } else if (!tituloEl && novaDesc) {
-    elementoEditandoAtual.textContent = novaDesc;
+  const novoTexto = document.getElementById('edit-texto-ocorrencia').value.trim();
+  if (cartaoAtual && novoTexto) {
+    cartaoAtual.innerText = novoTexto;
   }
-
   fecharModalEdicao();
 }
 
-function colocarBotoesEditar() {
-  if (document.querySelector('.btn-editar-ocorrencia')) return;
-
-  const divs = Array.from(document.querySelectorAll('div')).filter((d) => {
-    if (
-      d.id === 'tela-login' ||
-      d.id === 'modal-editar-ocorrencia' ||
-      d.closest('#tela-login') ||
-      d.closest('#modal-editar-ocorrencia') ||
-      d.closest('header') ||
-      d.closest('nav')
-    ) return false;
-
-    const t = d.textContent || '';
-    if (t.length < 10 || t.length > 450) return false;
-    const temDados = t.includes('IA ') || t.includes('Rua ');
-    if (!temDados) return false;
-
-    const temFilhoCard = Array.from(d.children).some((f) => {
-      const ft = f.textContent || '';
-      return ft.includes('IA ') || ft.includes('Rua ');
-    });
-    return !temFilhoCard;
-  });
-
-  divs.forEach((card) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.textContent = 'Editar';
-    btn.className = 'btn-editar-ocorrencia mt-2 px-3 py-1 rounded-lg bg-[#0f2318] border border-[#1b3b29] text-[11px] font-semibold text-[#68d391]';
-    btn.onclick = (e) => {
-      e.stopPropagation();
-      abrirModalEdicao(card);
-    };
-    card.appendChild(btn);
-  });
+function criarBotaoEditarFixo() {
+  if (document.getElementById('btn-abrir-edicao-fixo')) return;
+  const btn = document.createElement('button');
+  btn.id = 'btn-abrir-edicao-fixo';
+  btn.type = 'button';
+  btn.textContent = 'Editar ocorrência';
+  btn.onclick = abrirModalEdicao;
+  btn.style.cssText = 'position:fixed;bottom:84px;right:16px;z-index:40;padding:10px 14px;border-radius:12px;background:#0f2318;border:1px solid #68d391;color:#68d391;font-size:12px;font-weight:700;box-shadow:0 8px 20px rgba(0,0,0,.45);';
+  document.body.appendChild(btn);
 }
 
 window.onload = function () {
-  setTimeout(colocarBotoesEditar, 500);
+  setTimeout(criarBotaoEditarFixo, 400);
 };
 </script>
 </body>
