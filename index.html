@@ -1001,111 +1001,104 @@ function adicionarBotaoSairNoTopo() {
 </div>
 
 <script>
-let elementoEditandoAtual = null;
+(function () {
+  let elementoEditandoAtual = null;
 
-function abrirModalEdicao(elementoAlvo) {
-  elementoEditandoAtual = elementoAlvo;
-  const inputTitulo = document.getElementById('edit-titulo-ocorrencia');
-  const inputDesc = document.getElementById('edit-desc-ocorrencia');
+  window.abrirModalEdicao = function (elementoAlvo) {
+    elementoEditandoAtual = elementoAlvo;
+    const inputTitulo = document.getElementById('edit-titulo-ocorrencia');
+    const inputDesc = document.getElementById('edit-desc-ocorrencia');
 
-  const tituloEl = elementoAlvo.querySelector('h3, h4, strong, .titulo-ocorrencia');
-  const descEl = elementoAlvo.querySelector('p, .descricao-ocorrencia');
+    const tituloEl = elementoAlvo.querySelector('h3, h4, strong, .titulo-ocorrencia');
+    const descEl = elementoAlvo.querySelector('p, .descricao-ocorrencia');
 
-  inputTitulo.value = tituloEl ? tituloEl.textContent.trim() : '';
-  inputDesc.value = descEl
-    ? descEl.textContent.trim()
-    : elementoAlvo.innerText.replace(/Editar/gi, '').trim();
+    inputTitulo.value = tituloEl ? tituloEl.textContent.trim() : '';
+    inputDesc.value = descEl
+      ? descEl.textContent.trim()
+      : (elementoAlvo.textContent || '').replace(/Editar/gi, '').trim();
 
-  const modal = document.getElementById('modal-editar-ocorrencia');
-  modal.classList.remove('hidden');
-  modal.classList.add('flex');
-}
+    const modal = document.getElementById('modal-editar-ocorrencia');
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+  };
 
-function fecharModalEdicao() {
-  const modal = document.getElementById('modal-editar-ocorrencia');
-  modal.classList.add('hidden');
-  modal.classList.remove('flex');
-  elementoEditandoAtual = null;
-}
+  window.fecharModalEdicao = function () {
+    const modal = document.getElementById('modal-editar-ocorrencia');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+    elementoEditandoAtual = null;
+  };
 
-function salvarEdicaoOcorrencia() {
-  if (!elementoEditandoAtual) return;
-  const novoTitulo = document.getElementById('edit-titulo-ocorrencia').value.trim();
-  const novaDesc = document.getElementById('edit-desc-ocorrencia').value.trim();
+  window.salvarEdicaoOcorrencia = function () {
+    if (!elementoEditandoAtual) return;
+    const novoTitulo = document.getElementById('edit-titulo-ocorrencia').value.trim();
+    const novaDesc = document.getElementById('edit-desc-ocorrencia').value.trim();
 
-  const tituloEl = elementoEditandoAtual.querySelector('h3, h4, strong, .titulo-ocorrencia');
-  const descEl = elementoEditandoAtual.querySelector('p, .descricao-ocorrencia');
+    const tituloEl = elementoEditandoAtual.querySelector('h3, h4, strong, .titulo-ocorrencia');
+    const descEl = elementoEditandoAtual.querySelector('p, .descricao-ocorrencia');
 
-  if (tituloEl && novoTitulo) tituloEl.textContent = novoTitulo;
-  if (descEl) {
-    descEl.textContent = novaDesc;
-  } else if (!tituloEl && novaDesc) {
-    elementoEditandoAtual.textContent = novaDesc;
-  }
+    if (tituloEl && novoTitulo) tituloEl.textContent = novoTitulo;
+    if (descEl) {
+      descEl.textContent = novaDesc;
+    } else if (!tituloEl && novaDesc) {
+      elementoEditandoAtual.textContent = novaDesc;
+    }
 
-  for (let i = 0; i < localStorage.length; i++) {
-    const chave = localStorage.key(i);
-    if (chave && chave.toLowerCase().includes('ocorrencia')) {
-      try {
-        const dados = JSON.parse(localStorage.getItem(chave));
-        if (Array.isArray(dados)) {
-          localStorage.setItem(chave, JSON.stringify(dados));
-        }
-      } catch (e) {}
+    window.fecharModalEdicao();
+  };
+
+  function adicionarBotoesLeves() {
+    if (document.querySelector('.btn-editar-ocorrencia')) return;
+
+    const todasDivs = document.getElementsByTagName('div');
+    const limite = Math.min(todasDivs.length, 400);
+
+    for (let i = 0; i < limite; i++) {
+      const div = todasDivs[i];
+      if (
+        div.id === 'tela-login' ||
+        div.id === 'modal-editar-ocorrencia' ||
+        div.closest('#tela-login') ||
+        div.closest('#modal-editar-ocorrencia') ||
+        div.closest('header') ||
+        div.closest('nav')
+      ) continue;
+
+      const txt = div.textContent || '';
+      if (txt.length > 500 || txt.length < 10) continue;
+
+      if (txt.indexOf('IA ') !== -1 && txt.indexOf('Rua ') !== -1) {
+        const temFilhoIgual = Array.prototype.some.call(div.children, (filho) => {
+          const ft = filho.textContent || '';
+          return ft.indexOf('IA ') !== -1 && ft.indexOf('Rua ') !== -1;
+        });
+        if (temFilhoIgual) continue;
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = 'Editar';
+        btn.className = 'btn-editar-ocorrencia mt-2 px-3 py-1 rounded-lg bg-[#0f2318] border border-[#1b3b29] text-[11px] font-semibold text-[#68d391]';
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          window.abrirModalEdicao(div);
+        });
+        div.appendChild(btn);
+      }
     }
   }
 
-  fecharModalEdicao();
-}
-
-function adicionarBotoesEditarUmaVez() {
-  document.querySelectorAll('.btn-editar-ocorrencia').forEach((btn) => btn.remove());
-
-  const blocos = document.querySelectorAll('div, article, li');
-  blocos.forEach((bloco) => {
-    if (
-      bloco.closest('#tela-login') ||
-      bloco.closest('#modal-editar-ocorrencia') ||
-      bloco.closest('header') ||
-      bloco.closest('nav')
-    ) return;
-
-    const texto = (bloco.innerText || '').trim();
-    const temIndicadorOcorrenciaReal =
-      texto.includes('IA ') ||
-      texto.includes('Rua ') ||
-      texto.includes('há ') ||
-      texto.includes('minuto');
-
-    const ehResumoGravidade =
-      (texto.includes('Crítica') && texto.includes('Alta')) ||
-      (texto.includes('Média') && texto.includes('Baixa')) ||
-      /^(Crítica|Alta|Média|Baixa)\s*\d+$/i.test(texto.replace(/\s+/g, ' '));
-
-    if (!temIndicadorOcorrenciaReal || ehResumoGravidade || texto.length > 500) return;
-
-    const temCartaoFilho = Array.from(bloco.querySelectorAll('div, article, li')).some((filho) => {
-      if (filho === bloco) return false;
-      const t = (filho.innerText || '').trim();
-      return t.includes('IA ') || t.includes('Rua ');
+  if (document.readyState === 'complete') {
+    setTimeout(adicionarBotoesLeves, 400);
+  } else {
+    window.addEventListener('load', function () {
+      setTimeout(adicionarBotoesLeves, 400);
     });
-    if (temCartaoFilho) return;
-
-    const btnEditar = document.createElement('button');
-    btnEditar.type = 'button';
-    btnEditar.textContent = 'Editar';
-    btnEditar.className = 'btn-editar-ocorrencia mt-2 px-3 py-1 rounded-lg bg-[#0f2318] border border-[#1b3b29] text-[11px] font-semibold text-[#68d391] hover:border-[#68d391] transition';
-    btnEditar.onclick = (e) => {
-      e.stopPropagation();
-      abrirModalEdicao(bloco);
-    };
-    bloco.appendChild(btnEditar);
-  });
-}
-
-window.addEventListener('load', () => {
-  setTimeout(adicionarBotoesEditarUmaVez, 500);
-});
+  }
+})();
 </script>
 </body>
 </html>
