@@ -1058,12 +1058,8 @@ function salvarEdicaoOcorrencia() {
   fecharModalEdicao();
 }
 
-function limparBotoesInjetados() {
+function adicionarBotoesEditarUmaVez() {
   document.querySelectorAll('.btn-editar-ocorrencia').forEach((btn) => btn.remove());
-}
-
-function injetarBotoesEditar() {
-  limparBotoesInjetados();
 
   const blocos = document.querySelectorAll('div, article, li');
   blocos.forEach((bloco) => {
@@ -1081,7 +1077,6 @@ function injetarBotoesEditar() {
       texto.includes('há ') ||
       texto.includes('minuto');
 
-    // Ignora os cartões de resumo de gravidade ("Crítica 1", "Alta 1", "Média 1", "Baixa 0")
     const ehResumoGravidade =
       (texto.includes('Crítica') && texto.includes('Alta')) ||
       (texto.includes('Média') && texto.includes('Baixa')) ||
@@ -1089,7 +1084,6 @@ function injetarBotoesEditar() {
 
     if (!temIndicadorOcorrenciaReal || ehResumoGravidade || texto.length > 500) return;
 
-    // Garante que não adiciona dentro de um bloco pai que já contém outro cartão de ocorrência
     const temCartaoFilho = Array.from(bloco.querySelectorAll('div, article, li')).some((filho) => {
       if (filho === bloco) return false;
       const t = (filho.innerText || '').trim();
@@ -1109,10 +1103,8 @@ function injetarBotoesEditar() {
   });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  injetarBotoesEditar();
-  const observador = new MutationObserver(() => injetarBotoesEditar());
-  observador.observe(document.body, { childList: true, subtree: true });
+window.addEventListener('load', () => {
+  setTimeout(adicionarBotoesEditarUmaVez, 500);
 });
 </script>
 </body>
