@@ -1008,7 +1008,7 @@ let cartoesEncontrados = [];
 let cartaoAtual = null;
 
 function buscarCartoesOcorrencia() {
-  const todos = Array.from(document.querySelectorAll('div, article, li, section'));
+  const todos = Array.from(document.querySelectorAll('div, article, li'));
   const filtrados = todos.filter((el) => {
     if (
       el.id === 'tela-login' ||
@@ -1021,30 +1021,37 @@ function buscarCartoesOcorrencia() {
     ) return false;
 
     const txt = (el.textContent || '').trim().toLowerCase();
-    if (txt.length < 10 || txt.length > 900) return false;
+    if (txt.length < 18 || txt.length > 420) return false;
 
-    const temPista =
-      txt.includes('ia ') ||
-      txt.includes('rua ') ||
+    // Exige indicadores fortes de cartão de ocorrência e evita menus/resumos/botões
+    const temLocalOuIa = txt.includes('rua ') || txt.includes('ia ');
+    const temTipoOuTempo =
       txt.includes('queimada') ||
-      txt.includes('terreno') ||
       txt.includes('incêndio') ||
       txt.includes('incendio') ||
-      txt.includes('média') ||
-      txt.includes('media') ||
-      txt.includes('crítica') ||
-      txt.includes('critica') ||
-      txt.includes('baixa');
+      txt.includes('há ') ||
+      txt.includes('minuto');
 
-    if (!temPista) return false;
+    const pareceResumoOuPainel =
+      txt.includes('olá,') ||
+      txt.includes('ola,') ||
+      txt.includes('ocorrências recentes') ||
+      txt.includes('ocorrencias recentes') ||
+      txt.includes('ver todas') ||
+      txt.includes('registrar') ||
+      txt.includes('histórico') ||
+      txt.includes('historico');
 
+    if (!temLocalOuIa || !temTipoOuTempo || pareceResumoOuPainel) return false;
+
+    // Garante que é o cartão em si, e não um container maior que já engloba outro cartão
     const filhos = Array.from(el.children);
-    const temFilhoIgual = filhos.some((filho) => {
+    const temFilhoCartao = filhos.some((filho) => {
       const ft = (filho.textContent || '').trim().toLowerCase();
-      return (ft.includes('ia ') || ft.includes('rua ') || ft.includes('queimada')) && ft.length < txt.length;
+      return (ft.includes('rua ') || ft.includes('ia ')) && ft.length < txt.length;
     });
 
-    return !temFilhoIgual;
+    return !temFilhoCartao;
   });
 
   cartoesEncontrados = filtrados;
@@ -1059,7 +1066,7 @@ function carregarOcorrenciaSelecionada() {
 
   if (cartaoAtual) {
     textarea.value = (cartaoAtual.innerText || cartaoAtual.textContent || '')
- .replace(/Editar ocorrência/gi, '')
+      .replace(/Editar ocorrência/gi, '')
       .trim();
   } else {
     textarea.value = '';
