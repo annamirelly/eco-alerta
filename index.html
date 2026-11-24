@@ -986,271 +986,113 @@ function adicionarBotaoSairNoTopo() {
   areaSininho.appendChild(btnSair);
 }
     </script>
-<div id="modal-editar-ocorrencia" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 p-4">
-  <div class="w-full max-w-md rounded-2xl bg-[#0b1911] border border-[#1b3b29] p-5 text-slate-100 shadow-2xl">
-    <h3 class="text-base font-bold text-[#68d391] mb-3">Editar ocorrência</h3>
-
-    <label class="block text-xs text-slate-300 mb-1">Texto da ocorrência</label>
-    <textarea id="edit-texto-ocorrencia" rows="5" class="w-full rounded-xl bg-[#0f2318] border border-[#1b3b29] px-3 py-2 text-sm text-white mb-4 outline-none focus:border-[#68d391]"></textarea>
-
-    <div class="flex justify-end gap-2">
-      <button type="button" onclick="fecharModalEdicao()" class="px-4 py-2 rounded-xl bg-[#0f2318] border border-[#1b3b29] text-xs font-semibold text-slate-300 hover:text-white">Cancelar</button>
-      <button type="button" onclick="salvarEdicaoOcorrencia()" class="px-4 py-2 rounded-xl bg-[#68d391] text-xs font-bold text-[#06140c]">Salvar</button>
-    </div>
-  </div>
-</div>
-
 <script>
 (function () {
-  let cardAlvo = null;
-
-  function pegarTextoSemBotao(el) {
-    const clone = el.cloneNode(true);
-    clone.querySelectorAll('.btn-editar-card').forEach((b) => b.remove());
-    return (clone.textContent || '').replace(/\s+/g, ' ').trim();
+  function getPerfilAtual() {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = (localStorage.key(i) || '').toLowerCase();
+      if (k.includes('email') || k.includes('user') || k.includes('usuario') || k.includes('login') || k.includes('sess')) {
+        const val = localStorage.getItem(localStorage.key(i));
+        if (val && val.trim() && val !== 'null' && val !== 'undefined') {
+          try {
+            const obj = JSON.parse(val);
+            if (obj && obj.email) return String(obj.email).trim().toLowerCase();
+            if (obj && obj.usuario) return String(obj.usuario).trim().toLowerCase();
+          } catch (e) {}
+          const limpo = val.replace(/["']/g, '').trim().toLowerCase();
+          if (limpo.includes('@')) return limpo;
+          if (limpo.includes('visitante')) return 'visitante';
+          if (limpo.length > 1) return limpo;
+        }
+      }
+    }
+    const txt = (document.body && document.body.innerText) || '';
+    const matchEmail = txt.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i);
+    if (matchEmail) return matchEmail[0].toLowerCase();
+    if (txt.toLowerCase().includes('visitante')) return 'visitante';
+    return 'padrao';
   }
 
-  window.abrirModalEdicao = function (card) {
-    cardAlvo = card;
-    const textarea = document.getElementById('edit-texto-ocorrencia');
-    if (textarea && cardAlvo) {
-      textarea.value = pegarTextoSemBotao(cardAlvo);
-    }
-    const modal = document.getElementById('modal-editar-ocorrencia');
-    if (modal) {
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
+  // Marca automaticamente novas ocorrências salvas no localStorage com o perfil atual
+  const originalSetItem = localStorage.setItem.bind(localStorage);
+  localStorage.setItem = function (chave, valor) {
+    originalSetItem(chave, valor);
+    try {
+      if (typeof valor === 'string' && (chave.toLowerCase().includes('ocorrencia') || valor.toLowerCase().includes('queimada') || valor.toLowerCase().includes('rua '))) {
+        const perfil = getPerfilAtual();
+        const mapaChave = 'eco_perfil_itens_' + perfil;
+        const mapa = JSON.parse(originalSetItem && localStorage.getItem(mapaChave) || '{}');
+        mapa[valor.slice(0, 120)] = true;
+        originalSetItem(mapaChave, JSON.stringify(mapa));
+      }
+    } catch (e) {}
   };
 
-  window.fecharModalEdicao = function () {
-    const modal = document.getElementById('modal-editar-ocorrencia');
-    if (modal) {
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-    cardAlvo = null;
-  };
+  function aplicarSeparacao() {
+    const perfilAtual = getPerfilAtual();
+    const chaveAtual = 'eco_perfil_itens_' + perfilAtual;
+    let meusItens = {};
+    try {
+      meusItens = JSON.parse(localStorage.getItem(chaveAtual) || '{}');
+    } catch (e) {}
 
-  window.salvarEdicaoOcorrencia = function () {
-    const textarea = document.getElementById('edit-texto-ocorrencia');
-    const novoTexto = (textarea ? textarea.value : '').trim();
-
-    if (cardAlvo && novoTexto) {
-      const btnExistente = cardAlvo.querySelector('.btn-editar-card');
-      // Atualiza o primeiro bloco de texto/descrição visível ou o título se existir
-      const alvoTexto =
-        cardAlvo.querySelector('h1, h2, h3, h4, p') ||
-        Array.from(cardAlvo.querySelectorAll('div, span')).find((el) => {
-          if (el.classList.contains('btn-editar-card')) return false;
-          const t = (el.textContent || '').trim();
-          return t.length > 5 && !t.toLowerCase().includes('ia ') && !t.toLowerCase().includes('rua ');
-        });
-
-      if (alvoTexto && alvoTexto !== cardAlvo) {
-        alvoTexto.textContent = novoTexto;
-      } else {
-        cardAlvo.textContent = novoTexto;
-        if (btnExistente) cardAlvo.appendChild(btnExistente);
+    // Junta todos os itens registrados por OUTROS perfis
+    const itensOutrosPerfis = new Set();
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i) || '';
+      if (k.startsWith('eco_perfil_itens_') && k !== chaveAtual) {
+        try {
+          const outroMapa = JSON.parse(localStorage.getItem(k) || '{}');
+          Object.keys(outroMapa).forEach((trecho) => {
+            if (!meusItens[trecho]) itensOutrosPerfis.add(trecho);
+          });
+        } catch (e) {}
       }
     }
 
-    window.fecharModalEdicao();
-  };
-
-  function colocarBotoesNosCards() {
-    if (document.querySelector('.btn-editar-card')) return;
-
-    const candidatos = Array.from(document.querySelectorAll('div, article, li'));
-    candidatos.forEach((el) => {
+    const blocos = Array.from(document.querySelectorAll('div, article, li'));
+    blocos.forEach((el) => {
       if (
         el.id === 'tela-login' ||
-        el.id === 'modal-editar-ocorrencia' ||
         el.closest('#tela-login') ||
-        el.closest('#modal-editar-ocorrencia') ||
         el.closest('header') ||
         el.closest('nav')
       ) return;
 
       const txt = (el.textContent || '').trim().toLowerCase();
-      if (txt.length < 15 || txt.length > 450) return;
+      if (txt.length < 18 || txt.length > 500) return;
 
-      const ehCardOcorrencia =
-        (txt.includes('rua ') || txt.includes('ia ')) &&
-        (txt.includes('queimada') || txt.includes('incêndio') || txt.includes('incendio') || txt.includes('há ') || txt.includes('minuto') || txt.includes('terreno'));
+      const ehCard =
+        (txt.includes('rua ') || txt.includes('ia ') || txt.includes('queimada') || txt.includes('incêndio') || txt.includes('incendio') || txt.includes('terreno')) &&
+        !((txt.includes('crítica') && txt.includes('alta')) || (txt.includes('média') && txt.includes('baixa')));
 
-      const ehResumo =
-        txt.includes('crítica') && txt.includes('alta') ||
-        txt.includes('média') && txt.includes('baixa') ||
-        txt.includes('ocorrências recentes') ||
-        txt.includes('ocorrencias recentes');
+      if (!ehCard) return;
 
-      if (!ehCardOcorrencia || ehResumo) return;
-
-      // Garante que não coloca no container pai que já tem outro card de ocorrência
-      const temFilhoCard = Array.from(el.children).some((filho) => {
-        const ft = (filho.textContent || '').trim().toLowerCase();
-        return (ft.includes('rua ') || ft.includes('ia ')) && ft.length < txt.length;
+      const temFilhoCard = Array.from(el.children).some((f) => {
+        const ft = (f.textContent || '').trim().toLowerCase();
+        return (ft.includes('rua ') || ft.includes('ia ') || ft.includes('queimada')) && ft.length < txt.length;
       });
       if (temFilhoCard) return;
 
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.textContent = 'Editar';
-      btn.className = 'btn-editar-card';
-      btn.style.cssText = 'float:right;margin-left:8px;padding:4px 10px;border-radius:8px;background:#0f2318;border:1px solid #68d391;color:#68d391;font-size:11px;font-weight:700;cursor:pointer;';
-      btn.onclick = function (e) {
-        e.stopPropagation();
-        window.abrirModalEdicao(el);
-      };
-
-      el.insertBefore(btn, el.firstChild);
-    });
-  }
-
-  window.addEventListener('load', function () {
-    setTimeout(colocarBotoesNosCards, 500);
-  });
-})();
-</script>
-<script>
-(function () {
-  function obterUsuarioAtual() {
-    // Tenta achar e-mail ou chave de usuário salva no localStorage
-    const chavesPossiveis = ['usuarioLogado', 'usuario_logado', 'user', 'sessao', 'login', 'emailUsuario', 'eco_alerta_user'];
-    for (let i = 0; i < chavesPossiveis.length; i++) {
-      const val = localStorage.getItem(chavesPossiveis[i]);
-      if (val && val.trim()) {
-        try {
-          const obj = JSON.parse(val);
-          if (obj && (obj.email || obj.usuario || obj.nome)) {
-            return String(obj.email || obj.usuario || obj.nome).trim().toLowerCase();
-          }
-        } catch (e) {}
-        return val.trim().toLowerCase();
-      }
-    }
-
-    // Procura qualquer chave no localStorage que pareça sessão/usuário
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i) || '';
-      const kl = k.toLowerCase();
-      if (kl.includes('user') || kl.includes('usuario') || kl.includes('login') || kl.includes('auth') || kl.includes('sess')) {
-        const v = localStorage.getItem(k);
-        if (v && v.trim() && v !== 'null' && v !== 'undefined') {
-          try {
-            const o = JSON.parse(v);
-            if (o && (o.email || o.id || o.nome)) return String(o.email || o.id || o.nome).trim().toLowerCase();
-          } catch (e) {}
-          return v.trim().toLowerCase();
+      const textoLimpo = (el.textContent || '').replace(/\s+/g, ' ').trim();
+      let pertenceAOutro = false;
+      itensOutrosPerfis.forEach((trecho) => {
+        const pedaco = trecho.toLowerCase().slice(0, 35);
+        if (pedaco.length >= 12 && textoLimpo.toLowerCase().includes(pedaco)) {
+          pertenceAOutro = true;
         }
-      }
-    }
-
-    // Fallback se estiver em modo visitante
-    const corpo = (document.body && document.body.textContent) || '';
-    if (corpo.toLowerCase().includes('visitante')) {
-      return 'visitante';
-    }
-    return 'padrao';
-  }
-
-  function pegarCartoesOcorrencia() {
-    return Array.from(document.querySelectorAll('div, article, li')).filter((el) => {
-      if (
-        el.id === 'tela-login' ||
-        el.closest('#tela-login') ||
-        el.closest('header') ||
-        el.closest('nav')
-      ) return false;
-
-      const txt = (el.textContent || '').trim().toLowerCase();
-      if (txt.length < 18 || txt.length > 500) return false;
-
-      const temPista =
-        txt.includes('rua ') ||
-        txt.includes('ia ') ||
-        txt.includes('queimada') ||
-        txt.includes('incêndio') ||
-        txt.includes('incendio') ||
-        txt.includes('terreno');
-
-      const ehResumo =
-        (txt.includes('crítica') && txt.includes('alta')) ||
-        (txt.includes('média') && txt.includes('baixa')) ||
-        txt.includes('ocorrências recentes') ||
-        txt.includes('ocorrencias recentes');
-
-      if (!temPista || ehResumo) return false;
-
-      const temFilhoCard = Array.from(el.children).some((filho) => {
-        const ft = (filho.textContent || '').trim().toLowerCase();
-        return (ft.includes('rua ') || ft.includes('ia ') || ft.includes('queimada')) && ft.length < txt.length;
       });
-      return !temFilhoCard;
+
+      el.style.display = pertenceAOutro ? 'none' : '';
     });
-  }
-
-  function filtrarPorUsuario() {
-    const usuario = obterUsuarioAtual();
-    const chaveDono = 'eco_donos_ocorrencias_' + usuario;
-    let donosSalvos = {};
-    try {
-      donosSalvos = JSON.parse(localStorage.getItem(chaveDono) || '{}');
-    } catch (e) {
-      donosSalvos = {};
-    }
-
-    const cards = pegarCartoesOcorrencia();
-    let alterou = false;
-
-    cards.forEach((card, idx) => {
-      const assinatura = (card.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80);
-      const chaveItem = idx + '_' + assinatura;
-
-      // Se a ocorrência ainda não tem dono marcado para este usuário, marca como deste usuário
-      // (mas se já existe lista de donos de outro usuário, esconde o que não foi criado por este)
-      let donoGlobal = null;
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i) || '';
-        if (k.startsWith('eco_donos_ocorrencias_') && k !== chaveDono) {
-          try {
-            const mapaOutro = JSON.parse(localStorage.getItem(k) || '{}');
-            if (mapaOutro[chaveItem]) {
-              donoGlobal = k.replace('eco_donos_ocorrencias_', '');
-              break;
-            }
-          } catch (e) {}
-        }
-      }
-
-      if (donoGlobal && donoGlobal !== usuario && !donosSalvos[chaveItem]) {
-        card.style.display = 'none';
-      } else {
-        card.style.display = '';
-        if (!donosSalvos[chaveItem]) {
-          donosSalvos[chaveItem] = true;
-          alterou = true;
-        }
-      }
-    });
-
-    if (alterou) {
-      try {
-        localStorage.setItem(chaveDono, JSON.stringify(donosSalvos));
-      } catch (e) {}
-    }
   }
 
   window.addEventListener('load', function () {
-    setTimeout(filtrarPorUsuario, 500);
+    setTimeout(aplicarSeparacao, 500);
   });
 
-  document.addEventListener('click', function (e) {
-    const btn = e.target.closest('button');
-    if (btn) {
-      setTimeout(filtrarPorUsuario, 400);
-    }
+  document.addEventListener('click', function () {
+    setTimeout(aplicarSeparacao, 400);
   });
 })();
 </script>
