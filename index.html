@@ -990,9 +990,6 @@ function adicionarBotaoSairNoTopo() {
   <div class="w-full max-w-md rounded-2xl bg-[#0b1911] border border-[#1b3b29] p-5 text-slate-100 shadow-2xl">
     <h3 class="text-base font-bold text-[#68d391] mb-3">Editar ocorrência</h3>
 
-    <label class="block text-xs text-slate-300 mb-1">Qual ocorrência deseja editar?</label>
-    <select id="select-ocorrencia-alvo" onchange="carregarOcorrenciaSelecionada()" class="w-full rounded-xl bg-[#0f2318] border border-[#1b3b29] px-3 py-2 text-xs text-white mb-3 outline-none focus:border-[#68d391]"></select>
-
     <label class="block text-xs text-slate-300 mb-1">Texto da ocorrência</label>
     <textarea id="edit-texto-ocorrencia" rows="5" class="w-full rounded-xl bg-[#0f2318] border border-[#1b3b29] px-3 py-2 text-sm text-white mb-4 outline-none focus:border-[#68d391]"></textarea>
 
@@ -1004,151 +1001,117 @@ function adicionarBotaoSairNoTopo() {
 </div>
 
 <script>
-let cartoesEncontrados = [];
-let cartaoAtual = null;
+(function () {
+  let cardAlvo = null;
 
-function buscarCartoesOcorrencia() {
-  const todos = Array.from(document.querySelectorAll('div, article, li'));
-  const filtrados = todos.filter((el) => {
-    if (
-      el.id === 'tela-login' ||
-      el.id === 'modal-editar-ocorrencia' ||
-      el.id === 'btn-abrir-edicao-fixo' ||
-      el.closest('#tela-login') ||
-      el.closest('#modal-editar-ocorrencia') ||
-      el.closest('header') ||
-      el.closest('nav')
-    ) return false;
-
-    const txt = (el.textContent || '').trim().toLowerCase();
-    if (txt.length < 18 || txt.length > 420) return false;
-
-    // Exige indicadores fortes de cartão de ocorrência e evita menus/resumos/botões
-    const temLocalOuIa = txt.includes('rua ') || txt.includes('ia ');
-    const temTipoOuTempo =
-      txt.includes('queimada') ||
-      txt.includes('incêndio') ||
-      txt.includes('incendio') ||
-      txt.includes('há ') ||
-      txt.includes('minuto');
-
-    const pareceResumoOuPainel =
-      txt.includes('olá,') ||
-      txt.includes('ola,') ||
-      txt.includes('ocorrências recentes') ||
-      txt.includes('ocorrencias recentes') ||
-      txt.includes('ver todas') ||
-      txt.includes('registrar') ||
-      txt.includes('histórico') ||
-      txt.includes('historico');
-
-    if (!temLocalOuIa || !temTipoOuTempo || pareceResumoOuPainel) return false;
-
-    // Garante que é o cartão em si, e não um container maior que já engloba outro cartão
-    const filhos = Array.from(el.children);
-    const temFilhoCartao = filhos.some((filho) => {
-      const ft = (filho.textContent || '').trim().toLowerCase();
-      return (ft.includes('rua ') || ft.includes('ia ')) && ft.length < txt.length;
-    });
-
-    return !temFilhoCartao;
-  });
-
-  cartoesEncontrados = filtrados;
-  return filtrados;
-}
-
-function carregarOcorrenciaSelecionada() {
-  const select = document.getElementById('select-ocorrencia-alvo');
-  const textarea = document.getElementById('edit-texto-ocorrencia');
-  const idx = parseInt(select.value, 10);
-  cartaoAtual = cartoesEncontrados[idx] || null;
-
-  if (cartaoAtual) {
-    textarea.value = (cartaoAtual.innerText || cartaoAtual.textContent || '')
-      .replace(/Editar ocorrência/gi, '')
-      .trim();
-  } else {
-    textarea.value = '';
-  }
-}
-
-function abrirModalEdicao() {
-  const select = document.getElementById('select-ocorrencia-alvo');
-  const textarea = document.getElementById('edit-texto-ocorrencia');
-  const lista = buscarCartoesOcorrencia();
-  select.innerHTML = '';
-
-  if (lista.length === 0) {
-    const opt = document.createElement('option');
-    opt.value = '-1';
-    opt.textContent = 'Modo livre (digite ou cole o texto para editar)';
-    select.appendChild(opt);
-    cartaoAtual = null;
-    textarea.placeholder = 'Escreva ou cole aqui o texto corrigido da ocorrência...';
-  } else {
-    lista.forEach((card, i) => {
-      const opt = document.createElement('option');
-      opt.value = String(i);
-      const resumo = (card.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 50);
-      opt.textContent = `Ocorrência ${i + 1}: ${resumo}`;
-      select.appendChild(opt);
-    });
-    select.value = '0';
-    carregarOcorrenciaSelecionada();
+  function pegarTextoSemBotao(el) {
+    const clone = el.cloneNode(true);
+    clone.querySelectorAll('.btn-editar-card').forEach((b) => b.remove());
+    return (clone.textContent || '').replace(/\s+/g, ' ').trim();
   }
 
-  const modal = document.getElementById('modal-editar-ocorrencia');
-  if (modal) {
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-  }
-}
-
-function fecharModalEdicao() {
-  const modal = document.getElementById('modal-editar-ocorrencia');
-  if (modal) {
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-  }
-  cartaoAtual = null;
-}
-
-function salvarEdicaoOcorrencia() {
-  const textarea = document.getElementById('edit-texto-ocorrencia');
-  const novoTexto = (textarea ? textarea.value : '').trim();
-
-  if (cartaoAtual && novoTexto) {
-    cartaoAtual.innerText = novoTexto;
-  } else if (!cartaoAtual && novoTexto) {
-    let blocoLivre = document.getElementById('ocorrencia-editada-livre');
-    if (!blocoLivre) {
-      blocoLivre = document.createElement('div');
-      blocoLivre.id = 'ocorrencia-editada-livre';
-      blocoLivre.style.cssText = 'margin:12px 16px;padding:12px;border-radius:14px;background:#0f2318;border:1px solid #68d391;color:#e2e8f0;font-size:13px;';
-      const mainAlvo = document.querySelector('main') || document.body;
-      mainAlvo.prepend(blocoLivre);
+  window.abrirModalEdicao = function (card) {
+    cardAlvo = card;
+    const textarea = document.getElementById('edit-texto-ocorrencia');
+    if (textarea && cardAlvo) {
+      textarea.value = pegarTextoSemBotao(cardAlvo);
     }
-    blocoLivre.innerText = novoTexto;
+    const modal = document.getElementById('modal-editar-ocorrencia');
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+  };
+
+  window.fecharModalEdicao = function () {
+    const modal = document.getElementById('modal-editar-ocorrencia');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+    cardAlvo = null;
+  };
+
+  window.salvarEdicaoOcorrencia = function () {
+    const textarea = document.getElementById('edit-texto-ocorrencia');
+    const novoTexto = (textarea ? textarea.value : '').trim();
+
+    if (cardAlvo && novoTexto) {
+      const btnExistente = cardAlvo.querySelector('.btn-editar-card');
+      // Atualiza o primeiro bloco de texto/descrição visível ou o título se existir
+      const alvoTexto =
+        cardAlvo.querySelector('h1, h2, h3, h4, p') ||
+        Array.from(cardAlvo.querySelectorAll('div, span')).find((el) => {
+          if (el.classList.contains('btn-editar-card')) return false;
+          const t = (el.textContent || '').trim();
+          return t.length > 5 && !t.toLowerCase().includes('ia ') && !t.toLowerCase().includes('rua ');
+        });
+
+      if (alvoTexto && alvoTexto !== cardAlvo) {
+        alvoTexto.textContent = novoTexto;
+      } else {
+        cardAlvo.textContent = novoTexto;
+        if (btnExistente) cardAlvo.appendChild(btnExistente);
+      }
+    }
+
+    window.fecharModalEdicao();
+  };
+
+  function colocarBotoesNosCards() {
+    if (document.querySelector('.btn-editar-card')) return;
+
+    const candidatos = Array.from(document.querySelectorAll('div, article, li'));
+    candidatos.forEach((el) => {
+      if (
+        el.id === 'tela-login' ||
+        el.id === 'modal-editar-ocorrencia' ||
+        el.closest('#tela-login') ||
+        el.closest('#modal-editar-ocorrencia') ||
+        el.closest('header') ||
+        el.closest('nav')
+      ) return;
+
+      const txt = (el.textContent || '').trim().toLowerCase();
+      if (txt.length < 15 || txt.length > 450) return;
+
+      const ehCardOcorrencia =
+        (txt.includes('rua ') || txt.includes('ia ')) &&
+        (txt.includes('queimada') || txt.includes('incêndio') || txt.includes('incendio') || txt.includes('há ') || txt.includes('minuto') || txt.includes('terreno'));
+
+      const ehResumo =
+        txt.includes('crítica') && txt.includes('alta') ||
+        txt.includes('média') && txt.includes('baixa') ||
+        txt.includes('ocorrências recentes') ||
+        txt.includes('ocorrencias recentes');
+
+      if (!ehCardOcorrencia || ehResumo) return;
+
+      // Garante que não coloca no container pai que já tem outro card de ocorrência
+      const temFilhoCard = Array.from(el.children).some((filho) => {
+        const ft = (filho.textContent || '').trim().toLowerCase();
+        return (ft.includes('rua ') || ft.includes('ia ')) && ft.length < txt.length;
+      });
+      if (temFilhoCard) return;
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = 'Editar';
+      btn.className = 'btn-editar-card';
+      btn.style.cssText = 'float:right;margin-left:8px;padding:4px 10px;border-radius:8px;background:#0f2318;border:1px solid #68d391;color:#68d391;font-size:11px;font-weight:700;cursor:pointer;';
+      btn.onclick = function (e) {
+        e.stopPropagation();
+        window.abrirModalEdicao(el);
+      };
+
+      el.insertBefore(btn, el.firstChild);
+    });
   }
 
-  fecharModalEdicao();
-}
-
-function criarBotaoEditarFixo() {
-  if (document.getElementById('btn-abrir-edicao-fixo')) return;
-  const btn = document.createElement('button');
-  btn.id = 'btn-abrir-edicao-fixo';
-  btn.type = 'button';
-  btn.textContent = 'Editar ocorrência';
-  btn.onclick = abrirModalEdicao;
-  btn.style.cssText = 'position:fixed;bottom:84px;right:16px;z-index:40;padding:10px 14px;border-radius:12px;background:#0f2318;border:1px solid #68d391;color:#68d391;font-size:12px;font-weight:700;box-shadow:0 8px 20px rgba(0,0,0,.45);';
-  document.body.appendChild(btn);
-}
-
-window.onload = function () {
-  setTimeout(criarBotaoEditarFixo, 400);
-};
+  window.addEventListener('load', function () {
+    setTimeout(colocarBotoesNosCards, 500);
+  });
+})();
 </script>
 </body>
 </html>
