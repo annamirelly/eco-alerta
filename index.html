@@ -988,40 +988,44 @@ function adicionarBotaoSairNoTopo() {
     </script>
 <script>
 (function () {
-  const CHAVE_DONOS = 'eco_ocorrencias_por_dono_v2';
+  const CHAVE_DONOS_REGISTROS = 'eco_alerta_donos_registros_v1';
 
-  function lerPerfilAtual() {
-    for (let i = 0; i < localStorage.length; i++) {
-      const chaveReal = localStorage.key(i) || '';
-      if (chaveReal === CHAVE_DONOS) continue;
-      const k = chaveReal.toLowerCase();
-      if (k.includes('email') || k.includes('user') || k.includes('usuario') || k.includes('login') || k.includes('sess')) {
-        const val = localStorage.getItem(chaveReal);
-        if (val && val.trim() && val !== 'null' && val !== 'undefined') {
-          try {
-            const obj = JSON.parse(val);
-            if (obj && obj.email) return 'email:' + String(obj.email).trim().toLowerCase();
-            if (obj && obj.usuario) return 'user:' + String(obj.usuario).trim().toLowerCase();
-            if (obj && obj.nome) return 'user:' + String(obj.nome).trim().toLowerCase();
-          } catch (e) {}
-          const limpo = val.replace(/["']/g, '').trim().toLowerCase();
-          if (limpo.includes('@')) return 'email:' + limpo;
-          if (limpo.includes('visitante')) return 'visitante';
-          if (limpo.length > 1) return 'user:' + limpo;
-        }
+  function obterDonoSessao() {
+    try {
+      const sessao = JSON.parse(localStorage.getItem('eco_alerta_sessao') || 'null');
+      if (!sessao) return 'visitante';
+      if (typeof sessao === 'string') {
+        const s = sessao.trim().toLowerCase();
+        if (s.includes('@')) return 'email:' + s;
+        if (s.includes('visitante')) return 'visitante';
+        return s ? 'user:' + s : 'visitante';
       }
+      if (sessao.email && String(sessao.email).trim()) {
+        return 'email:' + String(sessao.email).trim().toLowerCase();
+      }
+      if (sessao.visitante === true || String(sessao.tipo || '').toLowerCase().includes('visitante')) {
+        return 'visitante';
+      }
+      if (sessao.usuario || sessao.nome || sessao.id) {
+        return 'user:' + String(sessao.usuario || sessao.nome || sessao.id).trim().toLowerCase();
+      }
+      return 'visitante';
+    } catch (e) {
+      return 'visitante';
     }
-
-    const textoPagina = (document.body && document.body.innerText) || '';
-    const matchEmail = textoPagina.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i);
-    if (matchEmail) return 'email:' + matchEmail[0].toLowerCase();
-    if (textoPagina.toLowerCase().includes('visitante')) return 'visitante';
-    return 'sessao_padrao';
   }
 
-  function pegarMapaDonos() {
+  function chaveItem(item) {
+    if (!item || typeof item !== 'object') return '';
+    if (item.id !== undefined && item.id !== null) return 'id:' + String(item.id);
+    const titulo = String(item.titulo || item.descricao || item.local || item.rua || '').trim().toLowerCase();
+    const data = String(item.data || item.dataHora || item.criadoEm || '').trim().toLowerCase();
+    return 'sig:' + titulo + '|' + data;
+  }
+
+  function lerMapaDonos() {
     try {
-      return JSON.parse(localStorage.getItem(CHAVE_DONOS) || '{}');
+      return JSON.parse(localStorage.getItem(CHAVE_DONOS_REGISTROS) || '{}');
     } catch (e) {
       return {};
     }
@@ -1029,102 +1033,95 @@ function adicionarBotaoSairNoTopo() {
 
   function salvarMapaDonos(mapa) {
     try {
-      localStorage.setItem(CHAVE_DONOS, JSON.stringify(mapa));
+      localStorage.setItem(CHAVE_DONOS_REGISTROS, JSON.stringify(mapa));
     } catch (e) {}
   }
 
-  function normalizarAssinatura(texto) {
-    return (texto || '').replace(/\s+/g, ' ').trim().toLowerCase().slice(0, 90);
-  }
+  function sincronizarDonosRegistros() {
+    if (!Array.isArray(window.registros)) return;
+    const donoAtual = obterDonoSessao();
+    const mapa = lerMapaDonos();
+    let alterou = false;
 
-  function buscarCardsOcorrencia() {
-    return Array.from(document.querySelectorAll('div, article, li')).filter((el) => {
-      if (
-        el.id === 'tela-login' ||
-        el.closest('#tela-login') ||
-        el.closest('header') ||
-        el.closest('nav')
-      ) return false;
+    window.registros.forEach((item) => {
+      if (!item || typeof item !== 'object') return;
+      const k = chaveItem(item);
+      if (!k) return;
 
-      const txt = (el.textContent || '').trim().toLowerCase();
-      if (txt.length < 18 || txt.length > 500) return false;
-
-      const ehResumo =
-        (txt.includes('crítica') && txt.includes('alta')) ||
-        (txt.includes('média') && txt.includes('baixa')) ||
-        txt.includes('ocorrências recentes') ||
-        txt.includes('ocorrencias recentes');
-      if (ehResumo) return false;
-
-      const temIndicador =
-        txt.includes('rua ') ||
-        txt.includes('ia ') ||
-        txt.includes('queimada') ||
-        txt.includes('incêndio') ||
-        txt.includes('incendio') ||
-        txt.includes('terreno');
-      if (!temIndicador) return false;
-
-      const temFilhoCard = Array.from(el.children).some((filho) => {
-        const ft = (filho.textContent || '').trim().toLowerCase();
-        return (ft.includes('rua ') || ft.includes('ia ') || ft.includes('queimada')) && ft.length < txt.length;
-      });
-      return !temFilhoCard;
-    });
-  }
-
-  function marcarOcorrenciasVisiveisComoDoPerfilAtual() {
-    const perfil = lerPerfilAtual();
-    const mapa = pegarMapaDonos();
-    const cards = buscarCardsOcorrencia();
-    let mudou = false;
-
-    cards.forEach((card) => {
-      const sig = normalizarAssinatura(card.textContent);
-      if (!sig) return;
-      if (!mapa[sig]) {
-        mapa[sig] = perfil;
-        mudou = true;
-      }
-    });
-
-    if (mudou) salvarMapaDonos(mapa);
-  }
-
-  function filtrarTelaPorPerfil() {
-    const perfilAtual = lerPerfilAtual();
-    const mapa = pegarMapaDonos();
-    const cards = buscarCardsOcorrencia();
-
-    cards.forEach((card) => {
-      const sig = normalizarAssinatura(card.textContent);
-      const dono = mapa[sig];
-      if (dono && dono !== perfilAtual) {
-        card.style.display = 'none';
+      if (item._donoConta) {
+        if (mapa[k] !== item._donoConta) {
+          mapa[k] = item._donoConta;
+          alterou = true;
+        }
+      } else if (mapa[k]) {
+        item._donoConta = mapa[k];
       } else {
-        card.style.display = '';
+        item._donoConta = donoAtual;
+        mapa[k] = donoAtual;
+        alterou = true;
       }
     });
+
+    if (alterou) salvarMapaDonos(mapa);
   }
 
-  function sincronizar() {
-    filtrarTelaPorPerfil();
-    setTimeout(marcarOcorrenciasVisiveisComoDoPerfilAtual, 300);
-  }
+  function aplicarFiltroNaSessao() {
+    if (!Array.isArray(window.registros)) return;
+    sincronizarDonosRegistros();
+    const donoAtual = obterDonoSessao();
 
-  window.addEventListener('load', function () {
-    setTimeout(sincronizar, 500);
-  });
-
-  document.addEventListener('click', function (e) {
-    const alvo = e.target.closest('button, a');
-    if (!alvo) return;
-    const rotulo = (alvo.textContent || '').toLowerCase();
-    if (rotulo.includes('sair') || rotulo.includes('entrar') || rotulo.includes('login') || rotulo.includes('visitante')) {
-      setTimeout(filtrarTelaPorPerfil, 350);
-    } else {
-      setTimeout(sincronizar, 350);
+    if (!window.__registrosOriginais) {
+      window.__registrosOriginais = window.registros.slice();
     }
+
+    // Mescla qualquer novo item adicionado a window.registros na base completa
+    const baseCompleta = window.__registrosOriginais.slice();
+    const chavesBase = new Set(baseCompleta.map(chaveItem).filter(Boolean));
+    window.registros.forEach((item) => {
+      const k = chaveItem(item);
+      if (k && !chavesBase.has(k)) {
+        if (!item._donoConta) item._donoConta = donoAtual;
+        baseCompleta.push(item);
+        chavesBase.add(k);
+      }
+    });
+    window.__registrosOriginais = baseCompleta;
+
+    // Atualiza window.registros apenas com os itens do dono da sessão atual
+    const filtrados = baseCompleta.filter((item) => (item._donoConta || 'visitante') === donoAtual);
+    window.registros.length = 0;
+    filtrados.forEach((item) => window.registros.push(item));
+  }
+
+  function envolverRender(nomeFuncao) {
+    const fn = window[nomeFuncao];
+    if (typeof fn !== 'function' || fn.__isoladoPorConta) return;
+    const wrapped = function (...args) {
+      aplicarFiltroNaSessao();
+      return fn.apply(this, args);
+    };
+    wrapped.__isoladoPorConta = true;
+    window[nomeFuncao] = wrapped;
+  }
+
+  function inicializarIsolamento() {
+    aplicarFiltroNaSessao();
+    envolverRender('renderizarPainel');
+    envolverRender('renderizarHistorico');
+    envolverRender('atualizarBadgeNotificacoes');
+    envolverRender('atualizarAnaliseTempoReal');
+    if (typeof window.renderizarPainel === 'function') window.renderizarPainel();
+    if (typeof window.renderizarHistorico === 'function') window.renderizarHistorico();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(inicializarIsolamento, 150));
+  } else {
+    setTimeout(inicializarIsolamento, 150);
+  }
+
+  document.addEventListener('click', () => {
+    setTimeout(inicializarIsolamento, 200);
   });
 })();
 </script>
