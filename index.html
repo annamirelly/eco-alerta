@@ -1008,25 +1008,42 @@ let cartoesEncontrados = [];
 let cartaoAtual = null;
 
 function buscarCartoesOcorrencia() {
-  const todos = Array.from(document.querySelectorAll('div, article, li'));
+  const todos = Array.from(document.querySelectorAll('div, article, li, section'));
   const filtrados = todos.filter((el) => {
     if (
       el.id === 'tela-login' ||
       el.id === 'modal-editar-ocorrencia' ||
+      el.id === 'btn-abrir-edicao-fixo' ||
       el.closest('#tela-login') ||
       el.closest('#modal-editar-ocorrencia') ||
       el.closest('header') ||
       el.closest('nav')
     ) return false;
 
-    const txt = (el.textContent || '').trim();
-    if (txt.length < 15 || txt.length > 500) return false;
-    if (!(txt.includes('IA ') || txt.includes('Rua ') || txt.includes('Queimada'))) return false;
+    const txt = (el.textContent || '').trim().toLowerCase();
+    if (txt.length < 10 || txt.length > 900) return false;
 
-    const temFilhoIgual = Array.from(el.children).some((filho) => {
-      const ft = (filho.textContent || '').trim();
-      return ft.includes('IA ') || ft.includes('Rua ') || ft.includes('Queimada');
+    const temPista =
+      txt.includes('ia ') ||
+      txt.includes('rua ') ||
+      txt.includes('queimada') ||
+      txt.includes('terreno') ||
+      txt.includes('incêndio') ||
+      txt.includes('incendio') ||
+      txt.includes('média') ||
+      txt.includes('media') ||
+      txt.includes('crítica') ||
+      txt.includes('critica') ||
+      txt.includes('baixa');
+
+    if (!temPista) return false;
+
+    const filhos = Array.from(el.children);
+    const temFilhoIgual = filhos.some((filho) => {
+      const ft = (filho.textContent || '').trim().toLowerCase();
+      return (ft.includes('ia ') || ft.includes('rua ') || ft.includes('queimada')) && ft.length < txt.length;
     });
+
     return !temFilhoIgual;
   });
 
@@ -1041,7 +1058,9 @@ function carregarOcorrenciaSelecionada() {
   cartaoAtual = cartoesEncontrados[idx] || null;
 
   if (cartaoAtual) {
-    textarea.value = (cartaoAtual.innerText || cartaoAtual.textContent || '').trim();
+    textarea.value = (cartaoAtual.innerText || cartaoAtual.textContent || '')
+ .replace(/Editar ocorrência/gi, '')
+      .trim();
   } else {
     textarea.value = '';
   }
@@ -1049,20 +1068,22 @@ function carregarOcorrenciaSelecionada() {
 
 function abrirModalEdicao() {
   const select = document.getElementById('select-ocorrencia-alvo');
+  const textarea = document.getElementById('edit-texto-ocorrencia');
   const lista = buscarCartoesOcorrencia();
   select.innerHTML = '';
 
   if (lista.length === 0) {
     const opt = document.createElement('option');
     opt.value = '-1';
-    opt.textContent = 'Nenhuma ocorrência encontrada na tela';
+    opt.textContent = 'Modo livre (digite ou cole o texto para editar)';
     select.appendChild(opt);
-    document.getElementById('edit-texto-ocorrencia').value = '';
+    cartaoAtual = null;
+    textarea.placeholder = 'Escreva ou cole aqui o texto corrigido da ocorrência...';
   } else {
     lista.forEach((card, i) => {
       const opt = document.createElement('option');
       opt.value = String(i);
-      const resumo = (card.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 45);
+      const resumo = (card.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 50);
       opt.textContent = `Ocorrência ${i + 1}: ${resumo}`;
       select.appendChild(opt);
     });
@@ -1087,10 +1108,23 @@ function fecharModalEdicao() {
 }
 
 function salvarEdicaoOcorrencia() {
-  const novoTexto = document.getElementById('edit-texto-ocorrencia').value.trim();
+  const textarea = document.getElementById('edit-texto-ocorrencia');
+  const novoTexto = (textarea ? textarea.value : '').trim();
+
   if (cartaoAtual && novoTexto) {
     cartaoAtual.innerText = novoTexto;
+  } else if (!cartaoAtual && novoTexto) {
+    let blocoLivre = document.getElementById('ocorrencia-editada-livre');
+    if (!blocoLivre) {
+      blocoLivre = document.createElement('div');
+      blocoLivre.id = 'ocorrencia-editada-livre';
+      blocoLivre.style.cssText = 'margin:12px 16px;padding:12px;border-radius:14px;background:#0f2318;border:1px solid #68d391;color:#e2e8f0;font-size:13px;';
+      const mainAlvo = document.querySelector('main') || document.body;
+      mainAlvo.prepend(blocoLivre);
+    }
+    blocoLivre.innerText = novoTexto;
   }
+
   fecharModalEdicao();
 }
 
