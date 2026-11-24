@@ -1043,7 +1043,6 @@ function salvarEdicaoOcorrencia() {
     elementoEditandoAtual.textContent = novaDesc;
   }
 
-  // Atualiza qualquer lista salva no localStorage se existir
   for (let i = 0; i < localStorage.length; i++) {
     const chave = localStorage.key(i);
     if (chave && chave.toLowerCase().includes('ocorrencia')) {
@@ -1060,12 +1059,34 @@ function salvarEdicaoOcorrencia() {
 }
 
 function injetarBotoesEditar() {
-  const candidatos = document.querySelectorAll('article, [data-ocorrencia], .ocorrencia, .card-ocorrencia, li');
-  candidatos.forEach((item) => {
-    if (item.closest('#tela-login') || item.closest('#modal-editar-ocorrencia')) return;
-    if (item.querySelector('.btn-editar-ocorrencia')) return;
-    const texto = item.innerText || '';
-    if (texto.trim().length < 8) return;
+  const blocos = document.querySelectorAll('div, article, li');
+  blocos.forEach((bloco) => {
+    if (
+      bloco.closest('#tela-login') ||
+      bloco.closest('#modal-editar-ocorrencia') ||
+      bloco.closest('header') ||
+      bloco.closest('nav')
+    ) return;
+
+    if (bloco.querySelector('.btn-editar-ocorrencia')) return;
+
+    const texto = (bloco.innerText || '').trim();
+    const temIndicadorOcorrencia =
+      texto.includes('IA ') ||
+      texto.includes('Rua ') ||
+      texto.includes('Queimada') ||
+      texto.includes('Média') ||
+      texto.includes('Crítica') ||
+      texto.includes('Baixa');
+
+    const botoesEditarDentro = bloco.querySelectorAll('.btn-editar-ocorrencia').length;
+    if (!temIndicadorOcorrencia || texto.length > 450 || botoesEditarDentro > 0) return;
+
+    const filhoTemCartao = Array.from(bloco.children).some((filho) => {
+      const t = filho.innerText || '';
+      return t.includes('IA ') || t.includes('Rua ');
+    });
+    if (filhoTemCartao) return;
 
     const btnEditar = document.createElement('button');
     btnEditar.type = 'button';
@@ -1073,9 +1094,9 @@ function injetarBotoesEditar() {
     btnEditar.className = 'btn-editar-ocorrencia mt-2 px-3 py-1 rounded-lg bg-[#0f2318] border border-[#1b3b29] text-[11px] font-semibold text-[#68d391] hover:border-[#68d391] transition';
     btnEditar.onclick = (e) => {
       e.stopPropagation();
-      abrirModalEdicao(item);
+      abrirModalEdicao(bloco);
     };
-    item.appendChild(btnEditar);
+    bloco.appendChild(btnEditar);
   });
 }
 
