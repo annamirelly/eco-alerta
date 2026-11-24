@@ -988,111 +988,143 @@ function adicionarBotaoSairNoTopo() {
     </script>
 <script>
 (function () {
-  function getPerfilAtual() {
+  const CHAVE_DONOS = 'eco_ocorrencias_por_dono_v2';
+
+  function lerPerfilAtual() {
     for (let i = 0; i < localStorage.length; i++) {
-      const k = (localStorage.key(i) || '').toLowerCase();
+      const chaveReal = localStorage.key(i) || '';
+      if (chaveReal === CHAVE_DONOS) continue;
+      const k = chaveReal.toLowerCase();
       if (k.includes('email') || k.includes('user') || k.includes('usuario') || k.includes('login') || k.includes('sess')) {
-        const val = localStorage.getItem(localStorage.key(i));
+        const val = localStorage.getItem(chaveReal);
         if (val && val.trim() && val !== 'null' && val !== 'undefined') {
           try {
             const obj = JSON.parse(val);
-            if (obj && obj.email) return String(obj.email).trim().toLowerCase();
-            if (obj && obj.usuario) return String(obj.usuario).trim().toLowerCase();
+            if (obj && obj.email) return 'email:' + String(obj.email).trim().toLowerCase();
+            if (obj && obj.usuario) return 'user:' + String(obj.usuario).trim().toLowerCase();
+            if (obj && obj.nome) return 'user:' + String(obj.nome).trim().toLowerCase();
           } catch (e) {}
           const limpo = val.replace(/["']/g, '').trim().toLowerCase();
-          if (limpo.includes('@')) return limpo;
+          if (limpo.includes('@')) return 'email:' + limpo;
           if (limpo.includes('visitante')) return 'visitante';
-          if (limpo.length > 1) return limpo;
+          if (limpo.length > 1) return 'user:' + limpo;
         }
       }
     }
-    const txt = (document.body && document.body.innerText) || '';
-    const matchEmail = txt.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i);
-    if (matchEmail) return matchEmail[0].toLowerCase();
-    if (txt.toLowerCase().includes('visitante')) return 'visitante';
-    return 'padrao';
+
+    const textoPagina = (document.body && document.body.innerText) || '';
+    const matchEmail = textoPagina.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i);
+    if (matchEmail) return 'email:' + matchEmail[0].toLowerCase();
+    if (textoPagina.toLowerCase().includes('visitante')) return 'visitante';
+    return 'sessao_padrao';
   }
 
-  // Marca automaticamente novas ocorrências salvas no localStorage com o perfil atual
-  const originalSetItem = localStorage.setItem.bind(localStorage);
-  localStorage.setItem = function (chave, valor) {
-    originalSetItem(chave, valor);
+  function pegarMapaDonos() {
     try {
-      if (typeof valor === 'string' && (chave.toLowerCase().includes('ocorrencia') || valor.toLowerCase().includes('queimada') || valor.toLowerCase().includes('rua '))) {
-        const perfil = getPerfilAtual();
-        const mapaChave = 'eco_perfil_itens_' + perfil;
-        const mapa = JSON.parse(originalSetItem && localStorage.getItem(mapaChave) || '{}');
-        mapa[valor.slice(0, 120)] = true;
-        originalSetItem(mapaChave, JSON.stringify(mapa));
-      }
-    } catch (e) {}
-  };
-
-  function aplicarSeparacao() {
-    const perfilAtual = getPerfilAtual();
-    const chaveAtual = 'eco_perfil_itens_' + perfilAtual;
-    let meusItens = {};
-    try {
-      meusItens = JSON.parse(localStorage.getItem(chaveAtual) || '{}');
-    } catch (e) {}
-
-    // Junta todos os itens registrados por OUTROS perfis
-    const itensOutrosPerfis = new Set();
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i) || '';
-      if (k.startsWith('eco_perfil_itens_') && k !== chaveAtual) {
-        try {
-          const outroMapa = JSON.parse(localStorage.getItem(k) || '{}');
-          Object.keys(outroMapa).forEach((trecho) => {
-            if (!meusItens[trecho]) itensOutrosPerfis.add(trecho);
-          });
-        } catch (e) {}
-      }
+      return JSON.parse(localStorage.getItem(CHAVE_DONOS) || '{}');
+    } catch (e) {
+      return {};
     }
+  }
 
-    const blocos = Array.from(document.querySelectorAll('div, article, li'));
-    blocos.forEach((el) => {
+  function salvarMapaDonos(mapa) {
+    try {
+      localStorage.setItem(CHAVE_DONOS, JSON.stringify(mapa));
+    } catch (e) {}
+  }
+
+  function normalizarAssinatura(texto) {
+    return (texto || '').replace(/\s+/g, ' ').trim().toLowerCase().slice(0, 90);
+  }
+
+  function buscarCardsOcorrencia() {
+    return Array.from(document.querySelectorAll('div, article, li')).filter((el) => {
       if (
         el.id === 'tela-login' ||
         el.closest('#tela-login') ||
         el.closest('header') ||
         el.closest('nav')
-      ) return;
+      ) return false;
 
       const txt = (el.textContent || '').trim().toLowerCase();
-      if (txt.length < 18 || txt.length > 500) return;
+      if (txt.length < 18 || txt.length > 500) return false;
 
-      const ehCard =
-        (txt.includes('rua ') || txt.includes('ia ') || txt.includes('queimada') || txt.includes('incêndio') || txt.includes('incendio') || txt.includes('terreno')) &&
-        !((txt.includes('crítica') && txt.includes('alta')) || (txt.includes('média') && txt.includes('baixa')));
+      const ehResumo =
+        (txt.includes('crítica') && txt.includes('alta')) ||
+        (txt.includes('média') && txt.includes('baixa')) ||
+        txt.includes('ocorrências recentes') ||
+        txt.includes('ocorrencias recentes');
+      if (ehResumo) return false;
 
-      if (!ehCard) return;
+      const temIndicador =
+        txt.includes('rua ') ||
+        txt.includes('ia ') ||
+        txt.includes('queimada') ||
+        txt.includes('incêndio') ||
+        txt.includes('incendio') ||
+        txt.includes('terreno');
+      if (!temIndicador) return false;
 
-      const temFilhoCard = Array.from(el.children).some((f) => {
-        const ft = (f.textContent || '').trim().toLowerCase();
+      const temFilhoCard = Array.from(el.children).some((filho) => {
+        const ft = (filho.textContent || '').trim().toLowerCase();
         return (ft.includes('rua ') || ft.includes('ia ') || ft.includes('queimada')) && ft.length < txt.length;
       });
-      if (temFilhoCard) return;
-
-      const textoLimpo = (el.textContent || '').replace(/\s+/g, ' ').trim();
-      let pertenceAOutro = false;
-      itensOutrosPerfis.forEach((trecho) => {
-        const pedaco = trecho.toLowerCase().slice(0, 35);
-        if (pedaco.length >= 12 && textoLimpo.toLowerCase().includes(pedaco)) {
-          pertenceAOutro = true;
-        }
-      });
-
-      el.style.display = pertenceAOutro ? 'none' : '';
+      return !temFilhoCard;
     });
   }
 
+  function marcarOcorrenciasVisiveisComoDoPerfilAtual() {
+    const perfil = lerPerfilAtual();
+    const mapa = pegarMapaDonos();
+    const cards = buscarCardsOcorrencia();
+    let mudou = false;
+
+    cards.forEach((card) => {
+      const sig = normalizarAssinatura(card.textContent);
+      if (!sig) return;
+      if (!mapa[sig]) {
+        mapa[sig] = perfil;
+        mudou = true;
+      }
+    });
+
+    if (mudou) salvarMapaDonos(mapa);
+  }
+
+  function filtrarTelaPorPerfil() {
+    const perfilAtual = lerPerfilAtual();
+    const mapa = pegarMapaDonos();
+    const cards = buscarCardsOcorrencia();
+
+    cards.forEach((card) => {
+      const sig = normalizarAssinatura(card.textContent);
+      const dono = mapa[sig];
+      if (dono && dono !== perfilAtual) {
+        card.style.display = 'none';
+      } else {
+        card.style.display = '';
+      }
+    });
+  }
+
+  function sincronizar() {
+    filtrarTelaPorPerfil();
+    setTimeout(marcarOcorrenciasVisiveisComoDoPerfilAtual, 300);
+  }
+
   window.addEventListener('load', function () {
-    setTimeout(aplicarSeparacao, 500);
+    setTimeout(sincronizar, 500);
   });
 
-  document.addEventListener('click', function () {
-    setTimeout(aplicarSeparacao, 400);
+  document.addEventListener('click', function (e) {
+    const alvo = e.target.closest('button, a');
+    if (!alvo) return;
+    const rotulo = (alvo.textContent || '').toLowerCase();
+    if (rotulo.includes('sair') || rotulo.includes('entrar') || rotulo.includes('login') || rotulo.includes('visitante')) {
+      setTimeout(filtrarTelaPorPerfil, 350);
+    } else {
+      setTimeout(sincronizar, 350);
+    }
   });
 })();
 </script>
