@@ -1,223 +1,1129 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="scroll-smooth">
+<html lang="pt-BR" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoAlerta - Painel de Monitoramento</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Eco Alerta - Monitoramento Ambiental</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background-color: #07130d;
+            color: #f1f5f9;
+            overscroll-behavior-y: none;
+        }
+        /* Esconder scrollbar mantendo funcionalidade */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @keyframes slideDown {
+            from { transform: translate(-50%, -120%); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+        .toast-enter {
+            animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+    </style>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans antialiased min-h-screen flex flex-col md:flex-row">
+<body class="min-h-screen flex justify-center bg-[#040c08]">
 
-    <!-- MENU LATERAL -->
-    <aside class="w-full md:w-64 bg-slate-800 border-r border-slate-700 p-6 flex flex-col justify-between md:fixed md:h-screen">
-        <div>
-            <div class="flex items-center gap-3 mb-8">
-                <div class="bg-emerald-500 p-2 rounded-lg text-slate-900 font-bold">🌿</div>
-                <div>
-                    <h1 class="text-xl font-bold tracking-wide">EcoAlerta</h1>
-                    <span class="text-xs text-emerald-400">GreenPulse Engine v2.4</span>
+    <!-- Container Mobile-First centralizado em telas maiores -->
+    <div class="w-full max-w-md min-h-screen bg-[#07130d] relative flex flex-col border-x border-[#142c20] shadow-2xl">
+        <!-- ==================== TELA DE LOGIN / CADASTRO ==================== -->
+        <div id="tela-login" class="fixed inset-0 z-50 bg-[#07130d] flex items-center justify-center p-4">
+            <div class="w-full max-w-sm bg-[#0f2318] border border-[#1b3b29] rounded-3xl p-6 shadow-2xl space-y-6">
+
+                <!-- Logo e Título -->
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-14 h-14 rounded-full bg-[#122e1f] border border-[#225238] flex items-center justify-center text-[#68d391] mb-3 shadow-inner">
+                        <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+                            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-xl font-extrabold text-white">Eco Alerta</h2>
+                    <p id="login-subtitulo" class="text-xs text-slate-400 mt-1">Entre para monitorar ocorrências ambientais</p>
+                </div>
+
+                <!-- Abas Entrar / Criar Conta -->
+                <div class="grid grid-cols-2 bg-[#0a1811] p-1 rounded-xl border border-[#1b3b29]">
+                    <button type="button" id="tab-entrar" onclick="mudarModoLogin('entrar')" class="py-2 rounded-lg text-xs font-bold bg-[#68d391] text-[#06140c] transition">Entrar</button>
+                    <button type="button" id="tab-cadastrar" onclick="mudarModoLogin('cadastrar')" class="py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">Criar conta</button>
+                </div>
+
+                <!-- Formulário -->
+                <form onsubmit="processarAutenticacao(event)" class="space-y-4">
+                    <div id="campo-nome" class="hidden">
+                        <label class="block text-xs font-semibold text-slate-300 mb-1.5">Seu nome</label>
+                        <input type="text" id="auth-nome" placeholder="Ex.: Ana Mirelly" class="w-full bg-[#0a1811] border border-[#1e402d] focus:border-[#68d391] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1.5">E-mail</label>
+                        <input type="email" id="auth-email" required placeholder="seu@email.com" class="w-full bg-[#0a1811] border border-[#1e402d] focus:border-[#68d391] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1.5">Senha</label>
+                        <input type="password" id="auth-senha" required placeholder="••••••••" class="w-full bg-[#0a1811] border border-[#1e402d] focus:border-[#68d391] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none">
+                    </div>
+
+                    <p id="auth-erro" class="hidden text-xs text-red-400 font-medium text-center"></p>
+
+                    <button type="submit" id="btn-auth-submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-[#78e08f] to-[#68d391] hover:brightness-105 text-[#06140c] font-bold text-sm shadow-lg transition">
+                        Entrar no sistema
+                    </button>
+                </form>
+
+                <!-- Acesso rápido para apresentação -->
+                <div class="pt-2 border-t border-[#1b3b29] text-center">
+                    <button type="button" onclick="entrarDemonstracao()" class="text-xs text-[#68d391] hover:underline font-medium">
+                        Entrar como visitante (modo demonstração)
+                    </button>
                 </div>
             </div>
-            <nav class="space-y-2">
-                <a href="#dashboard" class="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-500 transition">📊 Dashboard</a>
-                <a href="#registrar" class="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 text-slate-300 transition">⚠️ Nova Ocorrência</a>
-                <a href="#historico" class="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 text-slate-300 transition">📜 Histórico de Registros</a>
-            </nav>
         </div>
-        <div class="text-xs text-slate-500 mt-6 pt-4 border-t border-slate-700">
-            Sistema de Monitoramento Ambiental & IA
-        </div>
-    </aside>
 
-    <!-- CONTEÚDO PRINCIPAL -->
-    <main class="flex-1 p-6 md:p-10 md:ml-64 overflow-y-auto" id="dashboard">
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-            <div>
-                <h2 class="text-2xl font-bold text-white">Painel de Monitoramento</h2>
-                <p class="text-sm text-slate-400">Classificação automática por palavras-chave.</p>
+        <!-- TOAST FLUTUANTE NO TOPO (Idêntico ao vídeo) -->
+        <div id="toast-container" class="fixed top-3 left-1/2 -translate-x-1/2 w-[92%] max-w-[410px] z-50 hidden">
+            <div class="bg-[#0f2318] border border-[#244d37] rounded-2xl p-3.5 shadow-2xl flex items-center gap-3.5 toast-enter">
+                <div class="w-8 h-8 rounded-full border-2 border-[#68d391] flex items-center justify-center text-[#68d391] shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p id="toast-title" class="text-sm font-bold text-white leading-tight">Ocorrência registrada</p>
+                    <p id="toast-desc" class="text-xs text-slate-300 mt-0.5 leading-snug">Classificada automaticamente por palavras-chave.</p>
+                </div>
             </div>
-            <div id="status-api" class="bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg text-xs text-emerald-400">
-                🟢 Engine IA Ativa
+        </div>
+
+        <!-- CABEÇALHO FIXO NO TOPO -->
+        <header class="sticky top-0 z-30 bg-[#07130d]/95 backdrop-blur-md border-b border-[#142c20] px-4 py-3.5 flex items-center justify-between">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="navegarPara('painel')">
+                <!-- Ícone circular verde com folha -->
+                <div class="w-11 h-11 rounded-full bg-[#122e1f] border border-[#225238] flex items-center justify-center text-[#68d391] shadow-inner">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+                        <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-extrabold text-white tracking-tight leading-none">Eco Alerta</h1>
+                    <p class="text-[10px] font-bold text-[#68d391] tracking-widest uppercase mt-1">MONITORAMENTO AMBIENTAL</p>
+                </div>
+            </div>
+
+            <!-- Botão de Sininho com Badge Vermelho -->
+            <div class="relative">
+                <button id="btn-notificacoes" onclick="alternarNotificacoes(event)" class="w-11 h-11 rounded-2xl bg-[#0f2318] border border-[#1b3b29] hover:border-[#2e6144] flex items-center justify-center text-slate-200 transition relative">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                    </svg>
+                    <span id="badge-notif" class="hidden absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-red-500 text-white text-[11px] font-bold flex items-center justify-center shadow-md">0</span>
+                </button>
             </div>
         </header>
 
-        <!-- CARTÕES DE INDICADORES -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl shadow-sm">
-                <span class="text-xs text-slate-400 font-medium">Total de Registros</span>
-                <div id="card-total" class="text-3xl font-bold text-white mt-2">0</div>
+        <!-- PAINEL DROPDOWN DE NOTIFICAÇÕES -->
+        <div id="dropdown-notificacoes" class="hidden fixed top-[72px] left-1/2 -translate-x-1/2 w-[92%] max-w-[410px] bg-[#0f2318] border border-[#224733] rounded-2xl shadow-2xl z-40 overflow-hidden">
+            <div class="px-4 py-3 border-b border-[#1b3b29] flex items-center justify-between">
+                <span class="text-sm font-bold text-white">Notificações</span>
+                <button onclick="limparTodasNotificacoes()" class="text-xs font-semibold text-[#68d391] hover:underline">Limpar tudo</button>
             </div>
-            <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl shadow-sm">
-                <span class="text-xs text-slate-400 font-medium">Acurácia da IA</span>
-                <div class="text-3xl font-bold text-emerald-400 mt-2">94.8%</div>
-            </div>
-            <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl shadow-sm">
-                <span class="text-xs text-slate-400 font-medium">Qualidade do Ar (AQI)</span>
-                <div class="text-3xl font-bold text-blue-400 mt-2">Bom (34)</div>
-            </div>
-            <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl shadow-sm">
-                <span class="text-xs text-slate-400 font-medium">Alertas Críticos</span>
-                <div id="card-criticos" class="text-3xl font-bold text-red-400 mt-2">0</div>
+            <div id="lista-notificacoes" class="max-h-72 overflow-y-auto divide-y divide-[#1b3b29]">
+                <!-- Renderizado via JS -->
             </div>
         </div>
 
-        <!-- FORMULÁRIO DE REGISTRO -->
-        <div id="registrar" class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-sm mb-8 scroll-mt-6">
-            <h3 class="text-lg font-semibold text-white mb-4">Registar Ocorrência / Denúncia</h3>
-            <form id="form-ocorrencia" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- ÁREA DE CONTEÚDO PRINCIPAL (TELAS) -->
+        <main class="flex-1 px-4 pt-5 pb-28 overflow-y-auto">
+
+            <!-- ==================== TELA 1: PAINEL ==================== -->
+            <section id="tela-painel" class="space-y-6">
+                <!-- Card Resumo 2x2 -->
+                <div class="bg-[#0f2318] border border-[#1b3b29] rounded-2xl p-4 shadow-lg">
+                    <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+                        <!-- Crítica -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"></span>
+                                <span class="text-sm text-slate-300 font-medium">Crítica</span>
+                            </div>
+                            <span id="count-critica" class="text-base font-bold text-white">0</span>
+                        </div>
+                        <!-- Alta -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]"></span>
+                                <span class="text-sm text-slate-300 font-medium">Alta</span>
+                            </div>
+                            <span id="count-alta" class="text-base font-bold text-white">0</span>
+                        </div>
+                        <!-- Média -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.6)]"></span>
+                                <span class="text-sm text-slate-300 font-medium">Média</span>
+                            </div>
+                            <span id="count-media" class="text-base font-bold text-white">0</span>
+                        </div>
+                        <!-- Baixa -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-[#68d391] shadow-[0_0_8px_rgba(104,211,145,0.6)]"></span>
+                                <span class="text-sm text-slate-300 font-medium">Baixa</span>
+                            </div>
+                            <span id="count-baixa" class="text-base font-bold text-white">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção Ocorrências Recentes -->
                 <div>
-                    <label class="block text-xs text-slate-400 mb-1">Título / Tipo de Ocorrência</label>
-                    <input type="text" id="tipo" required placeholder="Ex: Incêndio na mata, Lixo no rio" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    <div class="flex items-center justify-between mb-3.5">
+                        <h2 class="text-lg font-bold text-white">Ocorrências recentes</h2>
+                        <button onclick="navegarPara('historico')" class="text-sm font-semibold text-[#68d391] hover:underline">Ver todas</button>
+                    </div>
+                    <div id="lista-recentes" class="space-y-3.5">
+                        <!-- Cards renderizados via JS -->
+                    </div>
                 </div>
+            </section>
+
+            <!-- ==================== TELA 2: REGISTRAR ==================== -->
+            <section id="tela-registrar" class="hidden space-y-5">
                 <div>
-                    <label class="block text-xs text-slate-400 mb-1">Localização</label>
-                    <input type="text" id="local" required placeholder="Ex: R. Principal, Bairro Centro" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    <h2 class="text-2xl font-extrabold text-white tracking-tight">Nova ocorrência</h2>
+                    <p class="text-sm text-slate-400 mt-1">Descreva o que você viu. A IA identifica o tipo e a gravidade.</p>
                 </div>
-                <div class="md:col-span-2">
-                    <label class="block text-xs text-slate-400 mb-1">Descrição Detalhada (A severidade é calculada automaticamente por palavras-chave)</label>
-                    <textarea id="descricao" required rows="3" placeholder="Descreva a ocorrência. Ex: Foi identificado um vazamento tóxico de óleo no local..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"></textarea>
-                </div>
-                <div class="md:col-span-2 flex justify-end">
-                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-6 py-2 rounded-lg text-sm transition">
-                        Classificar e Salvar Ocorrência
+
+                <!-- Card do Formulário -->
+                <div class="bg-[#0f2318] border border-[#1b3b29] rounded-2xl p-4 space-y-4 shadow-lg">
+                    <div>
+                        <label for="input-descricao" class="block text-sm font-semibold text-white mb-2">O que está acontecendo?</label>
+                        <textarea id="input-descricao" rows="4" oninput="atualizarAnaliseTempoReal()" placeholder="Ex.: Fogo na mata perto da escola, está se espalhando..." class="w-full bg-[#0a1811] border border-[#254e38] focus:border-[#68d391] rounded-xl p-3.5 text-sm text-white placeholder-slate-500 focus:outline-none transition resize-none"></textarea>
+                    </div>
+
+                    <!-- Chips de sugestão rápida -->
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="usarSugestao('Fogo no terreno baldio')" class="px-3 py-1.5 rounded-full bg-[#0a1811] border border-[#1e402d] hover:border-[#68d391] text-xs text-slate-300 transition">Fogo no terreno baldio</button>
+                        <button type="button" onclick="usarSugestao('Lixo jogado no rio')" class="px-3 py-1.5 rounded-full bg-[#0a1811] border border-[#1e402d] hover:border-[#68d391] text-xs text-slate-300 transition">Lixo jogado no rio</button>
+                        <button type="button" onclick="usarSugestao('Árvores sendo cortadas')" class="px-3 py-1.5 rounded-full bg-[#0a1811] border border-[#1e402d] hover:border-[#68d391] text-xs text-slate-300 transition">Árvores sendo cortadas</button>
+                        <button type="button" onclick="usarSugestao('Rua alagada')" class="px-3 py-1.5 rounded-full bg-[#0a1811] border border-[#1e402d] hover:border-[#68d391] text-xs text-slate-300 transition">Rua alagada</button>
+                    </div>
+
+                    <!-- Campo Onde? -->
+                    <div>
+                        <label for="input-local" class="block text-sm font-semibold text-white mb-2">Onde?</label>
+                        <div class="relative">
+                            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                            </span>
+                            <input type="text" id="input-local" placeholder="Bairro, rua ou ponto de refe" class="w-full bg-[#0a1811] border border-[#1e402d] focus:border-[#68d391] rounded-xl pl-10 pr-3.5 py-3 text-sm text-white placeholder-slate-500 focus:outline-none transition">
+                        </div>
+                    </div>
+
+                    <!-- Botão Enviar ocorrência -->
+                    <button type="button" onclick="enviarOcorrencia()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#78e08f] to-[#68d391] hover:brightness-105 active:scale-[0.99] text-[#06140c] font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        </svg>
+                        Enviar ocorrência
                     </button>
                 </div>
-            </form>
-        </div>
 
-        <!-- TABELA DE HISTÓRICO DE REGISTROS -->
-        <div id="historico" class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-sm mb-8 scroll-mt-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-white">Últimos Registros e Histórico</h3>
-                <button onclick="limparHistorico()" class="text-xs text-red-400 hover:underline">Limpar Todo o Histórico</button>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-sm">
-                    <thead>
-                        <tr class="border-b border-slate-700 text-slate-400 text-xs">
-                            <th class="py-3 px-4">Data/Hora</th>
-                            <th class="py-3 px-4">Ocorrência</th>
-                            <th class="py-3 px-4">Descrição</th>
-                            <th class="py-3 px-4">Local</th>
-                            <th class="py-3 px-4">Severidade (Auto)</th>
-                            <th class="py-3 px-4 text-right">Ação</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabela-corpo" class="divide-y divide-slate-700 text-slate-300">
-                        <!-- Preenchido via JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </main>
+                <!-- Cartão Dinâmico: Análise em tempo real -->
+                <div id="card-analise-tempo-real" class="bg-[#0f2318] border border-[#1b3b29] rounded-2xl p-4 shadow-lg transition-all">
+                    <div class="flex items-center gap-2 text-xs font-bold text-[#68d391] mb-3">
+                        <span>✨</span>
+                        <span>Análise em tempo real</span>
+                    </div>
+                    <div class="space-y-2.5 text-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-400">Categoria</span>
+                            <span id="preview-categoria" class="px-2.5 py-1 rounded-full bg-[#163323] border border-[#244f37] text-xs font-semibold text-slate-200">📍 Outro</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-400">Gravidade prevista</span>
+                            <span id="preview-gravidade" class="px-2.5 py-1 rounded-full bg-[#163323] border border-[#244f37] text-xs font-bold text-[#68d391]">• Baixa</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-    <!-- SCRIPT DE PROCESSAMENTO AUTOMÁTICO E NAVEGAÇÃO -->
+            <!-- ==================== TELA 3: HISTÓRICO ==================== -->
+            <section id="tela-historico" class="hidden space-y-4">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-white tracking-tight">Histórico de registros</h2>
+                    <p id="contador-historico" class="text-sm text-slate-400 mt-0.5">0 ocorrência(s) registrada(s).</p>
+                </div>
+
+                <!-- Barra de Busca -->
+                <div class="relative">
+                    <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </span>
+                    <input type="text" id="input-busca" oninput="renderizarHistorico()" placeholder="Buscar por descrição ou local" class="w-full bg-[#0f2318] border border-[#1b3b29] focus:border-[#68d391] rounded-2xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-400 focus:outline-none transition">
+                </div>
+
+                <!-- Filtros Horizontais em Pílulas -->
+                <div id="filtros-categorias" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                    <button onclick="selecionarFiltro('Todas')" data-cat="Todas" class="filtro-btn shrink-0 px-4 py-2 rounded-full text-xs font-bold bg-[#68d391] text-[#06140c] transition">Todas</button>
+                    <button onclick="selecionarFiltro('Queimada')" data-cat="Queimada" class="filtro-btn shrink-0 px-3.5 py-2 rounded-full text-xs font-semibold bg-[#0f2318] border border-[#1b3b29] text-slate-300 transition">🔥 Queimada</button>
+                    <button onclick="selecionarFiltro('Desmatamento')" data-cat="Desmatamento" class="filtro-btn shrink-0 px-3.5 py-2 rounded-full text-xs font-semibold bg-[#0f2318] border border-[#1b3b29] text-slate-300 transition">🪓 Desmatamento</button>
+                    <button onclick="selecionarFiltro('Descarte irregular')" data-cat="Descarte irregular" class="filtro-btn shrink-0 px-3.5 py-2 rounded-full text-xs font-semibold bg-[#0f2318] border border-[#1b3b29] text-slate-300 transition">🗑️ Descarte irregular</button>
+                    <button onclick="selecionarFiltro('Alagamento')" data-cat="Alagamento" class="filtro-btn shrink-0 px-3.5 py-2 rounded-full text-xs font-semibold bg-[#0f2318] border border-[#1b3b29] text-slate-300 transition">🌊 Alagamento</button>
+                    <button onclick="selecionarFiltro('Outro')" data-cat="Outro" class="filtro-btn shrink-0 px-3.5 py-2 rounded-full text-xs font-semibold bg-[#0f2318] border border-[#1b3b29] text-slate-300 transition">📍 Outro</button>
+                </div>
+
+                <!-- Texto Informativo -->
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Toca na etiqueta de gravidade (Baixa, Média, Alta ou Crítica) para editar depois de enviar.
+                </p>
+
+                <!-- Lista de Cards do Histórico -->
+                <div id="lista-historico" class="space-y-3.5">
+                    <!-- Renderizado via JS -->
+                </div>
+            </section>
+
+        </main>
+
+        <!-- NAVEGAÇÃO INFERIOR FIXA (BOTTOM NAVIGATION BAR) -->
+        <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-[#0a1811]/95 backdrop-blur-md border-t border-[#142c20] px-6 py-2.5 flex items-center justify-around z-30">
+            <!-- Aba Painel -->
+            <button onclick="navegarPara('painel')" id="nav-painel" class="flex flex-col items-center gap-1 text-[#68d391] transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                    <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                    <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                    <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                </svg>
+                <span class="text-[11px] font-bold">Painel</span>
+            </button>
+
+            <!-- Botão Central Circular Elevado (+) Registrar -->
+            <button onclick="navegarPara('registrar')" id="nav-registrar" class="flex flex-col items-center -mt-7 group">
+                <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-[#68d391] to-[#86efac] text-[#06140c] flex items-center justify-center shadow-[0_4px_20px_rgba(104,211,145,0.45)] group-active:scale-95 transition">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14"></path>
+                    </svg>
+                </div>
+                <span id="label-registrar" class="text-[11px] font-semibold text-slate-400 mt-1">Registrar</span>
+            </button>
+
+            <!-- Aba Histórico -->
+            <button onclick="navegarPara('historico')" id="nav-historico" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="text-[11px] font-semibold">Histórico</span>
+            </button>
+        </nav>
+
+    </div>
+
     <script>
-        let registros = JSON.parse(localStorage.getItem('eco_registros')) || [];
+        // ==================== ESTADO E PERSISTÊNCIA ====================
+        const STORAGE_KEY_REGS = 'eco_alerta_registros_v1';
+        const STORAGE_KEY_NOTIFS = 'eco_alerta_notificacoes_v1';
 
-        const form = document.getElementById('form-ocorrencia');
-        const tabelaCorpo = document.getElementById('tabela-corpo');
-        const cardTotal = document.getElementById('card-total');
-        const cardCriticos = document.getElementById('card-criticos');
+        let filtroAtual = 'Todas';
+        let popoverAbertoId = null;
 
-        function classificarPorPalavrasChave(texto) {
-            const txt = texto.toLowerCase();
-
-            const palavrasCriticas = ['vazamento', 'incêndio', 'incendio', 'fogo', 'explosão', 'explosao', 'tóxico', 'toxico', 'envenenamento', 'morte', 'emergência', 'emergencia', 'esgoto'];
-            const palavrasAltas = ['desmatamento', 'lixo', 'poluição', 'poluicao', 'óleo', 'oleo', 'fumaça', 'fumaca', 'cheiro', 'contaminação', 'contaminacao', 'buraco'];
-
-            for (let palavra of palavrasCriticas) {
-                if (txt.includes(palavra)) return 'Crítico';
+        // Registros iniciais de exemplo caso localStorage esteja vazio
+        const registrosIniciais = [
+            {
+                id: 'init-1',
+                descricao: 'Fogo no terreno baldio',
+                local: 'Rua 3',
+                categoria: 'Queimada',
+                gravidade: 'Média',
+                confianca: 73,
+                timestamp: Date.now() - 13 * 60 * 1000 // há 13 minutos
+            },
+            {
+                id: 'init-2',
+                descricao: 'Incêndio',
+                local: 'Rua 2',
+                categoria: 'Queimada',
+                gravidade: 'Crítica',
+                confianca: 92,
+                timestamp: Date.now() - 14 * 60 * 1000 // há 14 minutos
+            },
+            {
+                id: 'init-3',
+                descricao: 'Desmatamento',
+                local: 'Rua 1',
+                categoria: 'Desmatamento',
+                gravidade: 'Alta',
+                confianca: 88,
+                timestamp: Date.now() - 15 * 60 * 1000 // há 15 minutos
             }
+        ];
 
-            for (let palavra of palavrasAltas) {
-                if (txt.includes(palavra)) return 'Alto';
+        function carregarRegistros() {
+            try {
+                const salvos = localStorage.getItem(STORAGE_KEY_REGS);
+                if (salvos !== null) {
+                    return JSON.parse(salvos);
+                }
+                localStorage.setItem(STORAGE_KEY_REGS, JSON.stringify(registrosIniciais));
+                return [...registrosIniciais];
+            } catch (e) {
+                return [...registrosIniciais];
             }
-
-            return 'Baixo';
         }
 
-        function atualizarPainel() {
-            tabelaCorpo.innerHTML = '';
-            
-            if (registros.length === 0) {
-                tabelaCorpo.innerHTML = `<tr><td colspan="6" class="py-4 px-4 text-center text-slate-500">Nenhum registro no histórico.</td></tr>`;
-                cardTotal.innerText = '0';
-                cardCriticos.innerText = '0';
+        function carregarNotificacoes() {
+            try {
+                const salvas = localStorage.getItem(STORAGE_KEY_NOTIFS);
+                if (salvas !== null) {
+                    return JSON.parse(salvas);
+                }
+                const iniciais = registrosIniciais.map(r => ({
+                    id: 'notif-' + r.id,
+                    titulo: 'Ocorrência registrada',
+                    subtitulo: `${r.local} · classificada automaticamente`,
+                    timestamp: r.timestamp,
+                    lida: false
+                }));
+                localStorage.setItem(STORAGE_KEY_NOTIFS, JSON.stringify(iniciais));
+                return iniciais;
+            } catch (e) {
+                return [];
+            }
+        }
+
+        let registros = carregarRegistros();
+        let notificacoes = carregarNotificacoes();
+
+        function salvarDados() {
+            try {
+                localStorage.setItem(STORAGE_KEY_REGS, JSON.stringify(registros));
+                localStorage.setItem(STORAGE_KEY_NOTIFS, JSON.stringify(notificacoes));
+            } catch (e) {
+                console.warn('Erro ao salvar no localStorage:', e);
+            }
+        }
+
+        // ==================== MOTOR DE CLASSIFICAÇÃO POR PALAVRAS-CHAVE ====================
+        function normalizarTexto(texto) {
+            return (texto || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .trim();
+        }
+
+        function classificarOcorrencia(descricao) {
+            const texto = normalizarTexto(descricao);
+
+            // 1. Identificação da Categoria
+            let categoria = 'Outro';
+            if (['fogo', 'incendio', 'fumaca', 'queimada'].some(p => texto.includes(p))) {
+                categoria = 'Queimada';
+            } else if (['lixo', 'entulho', 'descarte'].some(p => texto.includes(p))) {
+                categoria = 'Descarte irregular';
+            } else if (['arvore', 'desmatamento', 'cortada'].some(p => texto.includes(p))) {
+                categoria = 'Desmatamento';
+            } else if (['alagada', 'alagamento', 'rio', 'esgoto'].some(p => texto.includes(p))) {
+                categoria = 'Alagamento';
+            }
+
+            // 2. Identificação da Gravidade (ordem de prioridade: Crítica -> Alta -> Média -> Baixa)
+            const palavrasCritica = ['vazamento', 'incendio', 'fogo', 'explosao', 'toxico', 'envenenamento', 'morte', 'emergencia', 'esgoto'];
+            const palavrasAlta = ['desmatamento', 'arvore', 'cortada', 'queimada', 'quimico', 'contaminacao'];
+            const palavrasMedia = ['lixo', 'poluicao', 'oleo', 'fumaca', 'cheiro', 'buraco', 'alagada', 'alagamento', 'rio', 'descarte', 'entulho'];
+
+            let gravidade = 'Baixa';
+            let confianca = 72;
+
+            if (palavrasCritica.some(p => texto.includes(p))) {
+                gravidade = 'Crítica';
+                confianca = 94;
+            } else if (palavrasAlta.some(p => texto.includes(p))) {
+                gravidade = 'Alta';
+                confianca = 89;
+            } else if (palavrasMedia.some(p => texto.includes(p))) {
+                gravidade = 'Média';
+                confianca = 86;
+            } else if (texto.length > 0) {
+                gravidade = 'Baixa';
+                confianca = 76;
+            }
+
+            return { categoria, gravidade, confianca };
+        }
+
+        // ==================== ESTILOS E HELPERS VISUAIS ====================
+        function getCategoriaInfo(categoria) {
+            switch (categoria) {
+                case 'Queimada':
+                    return { emoji: '🔥', classes: 'bg-[#2b1d12] border-[#5c3618] text-[#fb923c]' };
+                case 'Desmatamento':
+                    return { emoji: '🪓', classes: 'bg-[#291b14] border-[#543222] text-[#f97316]' };
+                case 'Descarte irregular':
+                    return { emoji: '🗑️', classes: 'bg-[#192922] border-[#29473a] text-[#94a3b8]' };
+                case 'Alagamento':
+                    return { emoji: '🌊', classes: 'bg-[#102533] border-[#1e4661] text-[#38bdf8]' };
+                default:
+                    return { emoji: '📍', classes: 'bg-[#26181c] border-[#4d2932] text-[#f87171]' };
+            }
+        }
+
+        function getGravidadeInfo(gravidade) {
+            switch (gravidade) {
+                case 'Crítica':
+                    return { dot: 'bg-red-500', classes: 'bg-[#2e1518] border-[#63262d] text-[#f87171]' };
+                case 'Alta':
+                    return { dot: 'bg-orange-500', classes: 'bg-[#2e1d12] border-[#61391d] text-[#fb923c]' };
+                case 'Média':
+                    return { dot: 'bg-yellow-400', classes: 'bg-[#2b2611] border-[#594e1c] text-[#facc15]' };
+                default:
+                    return { dot: 'bg-[#68d391]', classes: 'bg-[#122e1f] border-[#225439] text-[#68d391]' };
+            }
+        }
+
+        function formatarTempoRelativo(timestamp) {
+            const diffSegundos = Math.floor((Date.now() - timestamp) / 1000);
+            if (diffSegundos < 60) return 'há menos de um minuto';
+            const diffMinutos = Math.floor(diffSegundos / 60);
+            if (diffMinutos < 60) return `há ${diffMinutos} minuto${diffMinutos > 1 ? 's' : ''}`;
+            const diffHoras = Math.floor(diffMinutos / 60);
+            if (diffHoras < 24) return `há ${diffHoras} hora${diffHoras > 1 ? 's' : ''}`;
+            const diffDias = Math.floor(diffHoras / 24);
+            return `há ${diffDias} dia${diffDias > 1 ? 's' : ''}`;
+        }
+
+        // ==================== NAVEGAÇÃO ENTRE TELAS ====================
+        function navegarPara(tela) {
+            fecharPopoverGravidade();
+            document.getElementById('tela-painel').classList.add('hidden');
+            document.getElementById('tela-registrar').classList.add('hidden');
+            document.getElementById('tela-historico').classList.add('hidden');
+
+            document.getElementById(`tela-${tela}`).classList.remove('hidden');
+
+            // Atualiza cores da barra inferior
+            const navPainel = document.getElementById('nav-painel');
+            const navHistorico = document.getElementById('nav-historico');
+            const labelRegistrar = document.getElementById('label-registrar');
+
+            navPainel.className = 'flex flex-col items-center gap-1 transition ' + (tela === 'painel' ? 'text-[#68d391]' : 'text-slate-400 hover:text-slate-200');
+            navHistorico.className = 'flex flex-col items-center gap-1 transition ' + (tela === 'historico' ? 'text-[#68d391]' : 'text-slate-400 hover:text-slate-200');
+            labelRegistrar.className = 'text-[11px] mt-1 ' + (tela === 'registrar' ? 'font-bold text-[#68d391]' : 'font-semibold text-slate-400');
+
+            if (tela === 'painel') renderizarPainel();
+            if (tela === 'historico') renderizarHistorico();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ==================== TELA 1: PAINEL ====================
+        function renderizarPainel() {
+            const counts = { 'Crítica': 0, 'Alta': 0, 'Média': 0, 'Baixa': 0 };
+            registros.forEach(r => {
+                if (counts[r.gravidade] !== undefined) counts[r.gravidade]++;
+            });
+
+            document.getElementById('count-critica').innerText = counts['Crítica'];
+            document.getElementById('count-alta').innerText = counts['Alta'];
+            document.getElementById('count-media').innerText = counts['Média'];
+            document.getElementById('count-baixa').innerText = counts['Baixa'];
+
+            const container = document.getElementById('lista-recentes');
+            const recentes = registros.slice(0, 5);
+
+            if (recentes.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-[#0f2318] border border-[#1b3b29] rounded-2xl p-6 text-center text-sm text-slate-400">
+                        Nenhuma ocorrência registrada ainda. Toque em <strong>+ Registrar</strong> para começar.
+                    </div>`;
                 return;
             }
 
-            let criticosCount = 0;
-
-            registros.forEach((reg, index) => {
-                if (reg.severidade === 'Crítico') criticosCount++;
-
-                let badgeColor = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-                if (reg.severidade === 'Alto') badgeColor = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-                if (reg.severidade === 'Crítico') badgeColor = 'bg-red-500/10 text-red-400 border-red-500/20';
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="py-3 px-4 text-xs text-slate-400">${reg.data}</td>
-                    <td class="py-3 px-4 font-medium text-white">${reg.tipo}</td>
-                    <td class="py-3 px-4 text-xs text-slate-300 max-w-xs truncate">${reg.descricao}</td>
-                    <td class="py-3 px-4">${reg.local}</td>
-                    <td class="py-3 px-4">
-                        <span class="px-2.5 py-1 rounded-full text-xs border font-medium ${badgeColor}">
-                            ${reg.severidade}
-                        </span>
-                    </td>
-                    <td class="py-3 px-4 text-right">
-                        <button onclick="removerItem(${index})" class="text-xs text-red-400 hover:text-red-300">Excluir</button>
-                    </td>
-                `;
-                tabelaCorpo.appendChild(tr);
-            });
-
-            cardTotal.innerText = registros.length;
-            cardCriticos.innerText = criticosCount;
+            container.innerHTML = recentes.map(reg => criarCardOcorrenciaHTML(reg, 'painel')).join('');
         }
 
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
+        // ==================== TELA 2: REGISTRAR ====================
+        function usarSugestao(texto) {
+            const input = document.getElementById('input-descricao');
+            input.value = texto;
+            atualizarAnaliseTempoReal();
+            input.focus();
+        }
 
-            const tipo = document.getElementById('tipo').value;
-            const local = document.getElementById('local').value;
-            const descricao = document.getElementById('descricao').value;
+        function atualizarAnaliseTempoReal() {
+            const desc = document.getElementById('input-descricao').value;
+            const { categoria, gravidade } = classificarOcorrencia(desc);
 
-            const severidade = classificarPorPalavrasChave(tipo + " " + descricao);
-            const agora = new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+            const catInfo = getCategoriaInfo(categoria);
+            const gravInfo = getGravidadeInfo(gravidade);
 
+            const elCat = document.getElementById('preview-categoria');
+            elCat.className = `px-2.5 py-1 rounded-full border text-xs font-semibold ${catInfo.classes}`;
+            elCat.innerText = `${catInfo.emoji} ${categoria}`;
+
+            const elGrav = document.getElementById('preview-gravidade');
+            elGrav.className = `px-2.5 py-1 rounded-full border text-xs font-bold flex items-center gap-1.5 ${gravInfo.classes}`;
+            elGrav.innerHTML = `<span class="w-2 h-2 rounded-full ${gravInfo.dot}"></span>${gravidade}`;
+        }
+
+        function enviarOcorrencia() {
+            const inputDesc = document.getElementById('input-descricao');
+            const inputLocal = document.getElementById('input-local');
+
+            const descricao = inputDesc.value.trim();
+            const local = inputLocal.value.trim() || 'Local não informado';
+
+            if (!descricao) {
+                mostrarToast('Campo obrigatório', 'Por favor, descreva o que está acontecendo.');
+                inputDesc.focus();
+                return;
+            }
+
+            const analise = classificarOcorrencia(descricao);
             const novoRegistro = {
-                data: agora,
-                tipo: tipo,
-                local: local,
-                descricao: descricao,
-                severidade: severidade
+                id: 'reg-' + Date.now(),
+                descricao,
+                local,
+                categoria: analise.categoria,
+                gravidade: analise.gravidade,
+                confianca: analise.confianca,
+                timestamp: Date.now()
             };
 
             registros.unshift(novoRegistro);
-            localStorage.setItem('eco_registros', JSON.stringify(registros));
 
-            form.reset();
-            atualizarPainel();
-        });
+            notificacoes.unshift({
+                id: 'notif-' + Date.now(),
+                titulo: 'Ocorrência registrada',
+                subtitulo: `${local} · classificada automaticamente`,
+                timestamp: Date.now(),
+                lida: false
+            });
 
-        function removerItem(index) {
-            registros.splice(index, 1);
-            localStorage.setItem('eco_registros', JSON.stringify(registros));
-            atualizarPainel();
+            salvarDados();
+            atualizarBadgeNotificacoes();
+
+            // Limpa formulário
+            inputDesc.value = '';
+            inputLocal.value = '';
+            atualizarAnaliseTempoReal();
+
+            // Redireciona para o Histórico e exibe Toast
+            navegarPara('historico');
+            mostrarToast('Ocorrência registrada', 'Classificada automaticamente por palavras-chave.');
         }
 
-        function limparHistorico() {
-            if (confirm('Deseja apagar todo o histórico?')) {
-                registros = [];
-                localStorage.removeItem('eco_registros');
-                atualizarPainel();
+        // ==================== TELA 3: HISTÓRICO ====================
+        function selecionarFiltro(categoria) {
+            filtroAtual = categoria;
+            document.querySelectorAll('.filtro-btn').forEach(btn => {
+                const isSelected = btn.getAttribute('data-cat') === categoria;
+                if (isSelected) {
+                    btn.className = 'filtro-btn shrink-0 px-4 py-2 rounded-full text-xs font-bold bg-[#68d391] text-[#06140c] transition';
+                } else {
+                    btn.className = 'filtro-btn shrink-0 px-3.5 py-2 rounded-full text-xs font-semibold bg-[#0f2318] border border-[#1b3b29] text-slate-300 transition';
+                }
+            });
+            renderizarHistorico();
+        }
+
+        function renderizarHistorico() {
+            const termo = normalizarTexto(document.getElementById('input-busca').value);
+
+            const filtrados = registros.filter(reg => {
+                const matchCat = filtroAtual === 'Todas' || reg.categoria === filtroAtual;
+                const matchBusca = !termo ||
+                    normalizarTexto(reg.descricao).includes(termo) ||
+                    normalizarTexto(reg.local).includes(termo);
+                return matchCat && matchBusca;
+            });
+
+            document.getElementById('contador-historico').innerText = `${registros.length} ocorrência(s) registrada(s).`;
+
+            const container = document.getElementById('lista-historico');
+            if (filtrados.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-[#0f2318] border border-[#1b3b29] rounded-2xl p-6 text-center text-sm text-slate-400">
+                        Nenhuma ocorrência encontrada para este filtro.
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = filtrados.map(reg => criarCardOcorrenciaHTML(reg, 'historico')).join('');
+        }
+
+        // ==================== COMPONENTE DE CARD E POPOVER DE GRAVIDADE ====================
+        function criarCardOcorrenciaHTML(reg, contexto) {
+            const catInfo = getCategoriaInfo(reg.categoria);
+            const gravInfo = getGravidadeInfo(reg.gravidade);
+            const popoverKey = `${contexto}-${reg.id}`;
+            const isPopoverOpen = popoverAbertoId === popoverKey;
+
+            return `
+            <div class="bg-[#0f2318] border border-[#1b3b29] rounded-2xl p-4 relative shadow-md transition">
+                <!-- Linha Superior: Badges e Tempo -->
+                <div class="flex items-start justify-between gap-2">
+                    <div class="flex items-center flex-wrap gap-2 relative">
+                        <!-- Badge Categoria -->
+                        <span class="px-2.5 py-1 rounded-full border text-xs font-semibold inline-flex items-center gap-1.5 ${catInfo.classes}">
+                            <span>${catInfo.emoji}</span>
+                            <span>${reg.categoria}</span>
+                        </span>
+
+                        <!-- Badge Clicável Gravidade -->
+                        <button type="button" onclick="alternarPopoverGravidade(event, '${popoverKey}')" class="px-2.5 py-1 rounded-full border text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer hover:brightness-110 transition ${gravInfo.classes}">
+                            <span class="w-2 h-2 rounded-full ${gravInfo.dot}"></span>
+                            <span>${reg.gravidade}</span>
+                        </button>
+
+                        <!-- Setinha indicativa fora do badge -->
+                        <button type="button" onclick="alternarPopoverGravidade(event, '${popoverKey}')" class="text-slate-400 hover:text-white p-0.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+
+                        <!-- Popover / Dropdown de Edição de Gravidade -->
+                        ${isPopoverOpen ? `
+                        <div onclick="event.stopPropagation()" class="absolute left-16 top-9 w-40 bg-[#0d1f16] border border-[#244c36] rounded-2xl p-2 shadow-2xl z-30">
+                            <p class="text-[11px] font-bold text-slate-400 px-2.5 py-1.5">Gravidade</p>
+                            <div class="space-y-1">
+                                ${['Crítica', 'Alta', 'Média', 'Baixa'].map(nivel => {
+                                    const info = getGravidadeInfo(nivel);
+                                    const ativo = reg.gravidade === nivel;
+                                    return `
+                                    <button type="button" onclick="alterarGravidade('${reg.id}', '${nivel}')" class="w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 border transition ${ativo ? info.classes : 'border-transparent text-slate-300 hover:bg-[#153022]'}">
+                                        <span class="w-2 h-2 rounded-full ${info.dot}"></span>
+                                        <span>${nivel}</span>
+                                    </button>`;
+                                }).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    <span class="text-[11px] text-slate-400 whitespace-nowrap pt-1">${formatarTempoRelativo(reg.timestamp)}</span>
+                </div>
+
+                <!-- Texto Principal da Ocorrência -->
+                <p class="text-base font-bold text-white mt-3.5 mb-3 leading-snug break-words">${reg.descricao}</p>
+
+                <!-- Rodapé: Local + IA % e Lixeira (no Histórico) -->
+                <div class="flex items-center justify-between text-xs text-slate-400">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span>${reg.local}</span>
+                        </span>
+                        <span class="text-slate-400 font-medium">IA &nbsp;${reg.confianca}%</span>
+                    </div>
+
+                    ${contexto === 'historico' ? `
+                    <button type="button" onclick="excluirOcorrencia('${reg.id}')" title="Excluir registro" class="text-slate-400 hover:text-red-400 p-1 rounded-lg transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                    </button>
+                    ` : ''}
+                </div>
+            </div>`;
+        }
+
+        function alternarPopoverGravidade(event, popoverKey) {
+            event.stopPropagation();
+            popoverAbertoId = (popoverAbertoId === popoverKey) ? null : popoverKey;
+            renderizarPainel();
+            renderizarHistorico();
+        }
+
+        function fecharPopoverGravidade() {
+            if (popoverAbertoId !== null) {
+                popoverAbertoId = null;
+                renderizarPainel();
+                renderizarHistorico();
             }
         }
 
-        atualizarPainel();
+        function alterarGravidade(id, novaGravidade) {
+            const idx = registros.findIndex(r => r.id === id);
+            if (idx !== -1) {
+                registros[idx].gravidade = novaGravidade;
+                salvarDados();
+            }
+            popoverAbertoId = null;
+            renderizarPainel();
+            renderizarHistorico();
+        }
+
+        function excluirOcorrencia(id) {
+            registros = registros.filter(r => r.id !== id);
+            salvarDados();
+            renderizarPainel();
+            renderizarHistorico();
+        }
+
+        // ==================== NOTIFICAÇÕES E TOAST ====================
+        function atualizarBadgeNotificacoes() {
+            const naoLidas = notificacoes.filter(n => !n.lida).length;
+            const badge = document.getElementById('badge-notif');
+            if (naoLidas > 0) {
+                badge.innerText = naoLidas;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function renderizarListaNotificacoes() {
+            const lista = document.getElementById('lista-notificacoes');
+            if (notificacoes.length === 0) {
+                lista.innerHTML = `<div class="p-5 text-center text-xs text-slate-400">Nenhuma notificação no momento.</div>`;
+                return;
+            }
+
+            lista.innerHTML = notificacoes.map(n => `
+                <div class="px-4 py-3.5 flex items-start gap-3 hover:bg-[#132b1e] transition">
+                    <span class="w-2 h-2 rounded-full mt-1.5 shrink-0 ${n.lida ? 'bg-slate-600' : 'bg-[#68d391]'}"></span>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-white leading-tight">${n.titulo}</p>
+                        <p class="text-xs text-slate-300 mt-0.5 truncate">${n.subtitulo}</p>
+                        <p class="text-[11px] text-slate-500 mt-1">${formatarTempoRelativo(n.timestamp)}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function alternarNotificacoes(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('dropdown-notificacoes');
+            const estavaOculto = dropdown.classList.contains('hidden');
+
+            if (estavaOculto) {
+                renderizarListaNotificacoes();
+                dropdown.classList.remove('hidden');
+                // Marca como lidas ao abrir
+                notificacoes.forEach(n => n.lida = true);
+                salvarDados();
+                atualizarBadgeNotificacoes();
+            } else {
+                dropdown.classList.add('hidden');
+            }
+        }
+
+        function limparTodasNotificacoes() {
+            notificacoes = [];
+            salvarDados();
+            atualizarBadgeNotificacoes();
+            renderizarListaNotificacoes();
+        }
+
+        let toastTimer = null;
+        function mostrarToast(titulo, descricao) {
+            const container = document.getElementById('toast-container');
+            document.getElementById('toast-title').innerText = titulo;
+            document.getElementById('toast-desc').innerText = descricao;
+
+            container.classList.remove('hidden');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                container.classList.add('hidden');
+            }, 3800);
+        }
+
+        // Fecha menus flutuantes ao clicar fora
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('dropdown-notificacoes');
+            const btnNotif = document.getElementById('btn-notificacoes');
+            if (!dropdown.contains(e.target) && !btnNotif.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+            fecharPopoverGravidade();
+        });
+
+        // ==================== INICIALIZAÇÃO ====================
+        renderizarPainel();
+        atualizarBadgeNotificacoes();
+        atualizarAnaliseTempoReal();
     </script>
+    
+<!-- Meu código do Firebase  -->
+    <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBF5Wjcj2yZ0O68HHMlT73CPmhqTNJDC9A",
+  authDomain: "eco-alertas.firebaseapp.com",
+  projectId: "eco-alertas",
+  storageBucket: "eco-alertas.firebasestorage.app",
+  messagingSenderId: "92408617991",
+  appId: "1:92408617991:web:3d50d53831b026dff95ea2",
+  measurementId: "G-KBEVK2C1Z7"
+};
+
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+    </script>
+    <script>
+let modoAuth = 'entrar';
+
+document.addEventListener('DOMContentLoaded', () => {
+  const usuarioLogado = JSON.parse(localStorage.getItem('eco_alerta_sessao'));
+  if (usuarioLogado) liberarAcesso(usuarioLogado);
+  adicionarBotaoSairNoTopo();
+});
+
+function mudarModoLogin(modo) {
+  modoAuth = modo;
+  const tabEntrar = document.getElementById('tab-entrar');
+  const tabCadastrar = document.getElementById('tab-cadastrar');
+  const campoNome = document.getElementById('campo-nome');
+  const btnSubmit = document.getElementById('btn-auth-submit');
+  const subtitulo = document.getElementById('login-subtitulo');
+  const erro = document.getElementById('auth-erro');
+  if (erro) erro.classList.add('hidden');
+
+  if (modo === 'cadastrar') {
+    tabCadastrar.className = 'py-2 rounded-lg text-xs font-bold bg-[#68d391] text-[#06140c] transition';
+    tabEntrar.className = 'py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition';
+    campoNome.classList.remove('hidden');
+    btnSubmit.textContent = 'Criar conta e entrar';
+    subtitulo.textContent = 'Crie sua conta para registrar alertas';
+  } else {
+    tabEntrar.className = 'py-2 rounded-lg text-xs font-bold bg-[#68d391] text-[#06140c] transition';
+    tabCadastrar.className = 'py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition';
+    campoNome.classList.add('hidden');
+    btnSubmit.textContent = 'Entrar no sistema';
+    subtitulo.textContent = 'Entre para monitorar ocorrências ambientais';
+  }
+}
+
+function processarAutenticacao(event) {
+  event.preventDefault();
+  const nome = document.getElementById('auth-nome').value.trim();
+  const email = document.getElementById('auth-email').value.trim().toLowerCase();
+  const senha = document.getElementById('auth-senha').value;
+  let usuarios = JSON.parse(localStorage.getItem('eco_alerta_usuarios')) || [];
+
+  if (modoAuth === 'cadastrar') {
+    if (!nome) return mostrarErroAuth('Por favor, informe o seu nome.');
+    if (usuarios.some(u => u.email === email)) return mostrarErroAuth('Este e-mail já está cadastrado.');
+    const novoUsuario = { nome, email, senha };
+    usuarios.push(novoUsuario);
+    localStorage.setItem('eco_alerta_usuarios', JSON.stringify(usuarios));
+    localStorage.setItem('eco_alerta_sessao', JSON.stringify(novoUsuario));
+    liberarAcesso(novoUsuario);
+  } else {
+    const usuarioEncontrado = usuarios.find(u => u.email === email && u.senha === senha);
+    if (!usuarioEncontrado) return mostrarErroAuth('E-mail ou senha incorretos.');
+    localStorage.setItem('eco_alerta_sessao', JSON.stringify(usuarioEncontrado));
+    liberarAcesso(usuarioEncontrado);
+  }
+}
+
+function entrarDemonstracao() {
+  const demo = { nome: 'Visitante', email: 'demo@ecoalerta.com' };
+  localStorage.setItem('eco_alerta_sessao', JSON.stringify(demo));
+  liberarAcesso(demo);
+}
+
+function mostrarErroAuth(mensagem) {
+  const erro = document.getElementById('auth-erro');
+  if (erro) {
+    erro.textContent = mensagem;
+    erro.classList.remove('hidden');
+  }
+}
+
+function liberarAcesso(usuario) {
+  const tela = document.getElementById('tela-login');
+  if (tela) tela.style.display = 'none';
+  const subtituloHeader = document.querySelector('header p');
+  if (subtituloHeader && usuario.nome) {
+    subtituloHeader.textContent = `OLÁ, ${usuario.nome.toUpperCase()}`;
+  }
+}
+
+function sairDoSistema() {
+  localStorage.removeItem('eco_alerta_sessao');
+  const tela = document.getElementById('tela-login');
+  if (tela) tela.style.display = 'flex';
+  const senha = document.getElementById('auth-senha');
+  if (senha) senha.value = '';
+}
+
+function adicionarBotaoSairNoTopo() {
+  const areaSininho = document.getElementById('btn-notificacoes')?.parentElement;
+  if (!areaSininho || document.getElementById('btn-sair')) return;
+  areaSininho.classList.add('flex', 'items-center', 'gap-2');
+  const btnSair = document.createElement('button');
+  btnSair.id = 'btn-sair';
+  btnSair.title = 'Sair da conta';
+  btnSair.onclick = sairDoSistema;
+  btnSair.className = 'w-11 h-11 rounded-2xl bg-[#0f2318] border border-[#1b3b29] hover:border-red-500/60 flex items-center justify-center text-slate-300 hover:text-red-400 transition';
+  btnSair.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>`;
+  areaSininho.appendChild(btnSair);
+}
+    </script>
+<script>
+(function () {
+  const CHAVE_DONOS_REGISTROS = 'eco_alerta_donos_registros_v1';
+
+  function obterDonoSessao() {
+    try {
+      const sessao = JSON.parse(localStorage.getItem('eco_alerta_sessao') || 'null');
+      if (!sessao) return 'visitante';
+      if (typeof sessao === 'string') {
+        const s = sessao.trim().toLowerCase();
+        if (s.includes('@')) return 'email:' + s;
+        if (s.includes('visitante')) return 'visitante';
+        return s ? 'user:' + s : 'visitante';
+      }
+      if (sessao.email && String(sessao.email).trim()) {
+        return 'email:' + String(sessao.email).trim().toLowerCase();
+      }
+      if (sessao.visitante === true || String(sessao.tipo || '').toLowerCase().includes('visitante')) {
+        return 'visitante';
+      }
+      if (sessao.usuario || sessao.nome || sessao.id) {
+        return 'user:' + String(sessao.usuario || sessao.nome || sessao.id).trim().toLowerCase();
+      }
+      return 'visitante';
+    } catch (e) {
+      return 'visitante';
+    }
+  }
+
+  function chaveItem(item) {
+    if (!item || typeof item !== 'object') return '';
+    if (item.id !== undefined && item.id !== null) return 'id:' + String(item.id);
+    const titulo = String(item.titulo || item.descricao || item.local || item.rua || '').trim().toLowerCase();
+    const data = String(item.data || item.dataHora || item.criadoEm || '').trim().toLowerCase();
+    return 'sig:' + titulo + '|' + data;
+  }
+
+  function lerMapaDonos() {
+    try {
+      return JSON.parse(localStorage.getItem(CHAVE_DONOS_REGISTROS) || '{}');
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function salvarMapaDonos(mapa) {
+    try {
+      localStorage.setItem(CHAVE_DONOS_REGISTROS, JSON.stringify(mapa));
+    } catch (e) {}
+  }
+
+  function sincronizarDonosRegistros() {
+    if (!Array.isArray(window.registros)) return;
+    const donoAtual = obterDonoSessao();
+    const mapa = lerMapaDonos();
+    let alterou = false;
+
+    window.registros.forEach((item) => {
+      if (!item || typeof item !== 'object') return;
+      const k = chaveItem(item);
+      if (!k) return;
+
+      if (item._donoConta) {
+        if (mapa[k] !== item._donoConta) {
+          mapa[k] = item._donoConta;
+          alterou = true;
+        }
+      } else if (mapa[k]) {
+        item._donoConta = mapa[k];
+      } else {
+        item._donoConta = donoAtual;
+        mapa[k] = donoAtual;
+        alterou = true;
+      }
+    });
+
+    if (alterou) salvarMapaDonos(mapa);
+  }
+
+  function aplicarFiltroNaSessao() {
+    if (!Array.isArray(window.registros)) return;
+    sincronizarDonosRegistros();
+    const donoAtual = obterDonoSessao();
+
+    if (!window.__registrosOriginais) {
+      window.__registrosOriginais = window.registros.slice();
+    }
+
+    // Mescla qualquer novo item adicionado a window.registros na base completa
+    const baseCompleta = window.__registrosOriginais.slice();
+    const chavesBase = new Set(baseCompleta.map(chaveItem).filter(Boolean));
+    window.registros.forEach((item) => {
+      const k = chaveItem(item);
+      if (k && !chavesBase.has(k)) {
+        if (!item._donoConta) item._donoConta = donoAtual;
+        baseCompleta.push(item);
+        chavesBase.add(k);
+      }
+    });
+    window.__registrosOriginais = baseCompleta;
+
+    // Atualiza window.registros apenas com os itens do dono da sessão atual
+    const filtrados = baseCompleta.filter((item) => (item._donoConta || 'visitante') === donoAtual);
+    window.registros.length = 0;
+    filtrados.forEach((item) => window.registros.push(item));
+  }
+
+  function envolverRender(nomeFuncao) {
+    const fn = window[nomeFuncao];
+    if (typeof fn !== 'function' || fn.__isoladoPorConta) return;
+    const wrapped = function (...args) {
+      aplicarFiltroNaSessao();
+      return fn.apply(this, args);
+    };
+    wrapped.__isoladoPorConta = true;
+    window[nomeFuncao] = wrapped;
+  }
+
+  function inicializarIsolamento() {
+    aplicarFiltroNaSessao();
+    envolverRender('renderizarPainel');
+    envolverRender('renderizarHistorico');
+    envolverRender('atualizarBadgeNotificacoes');
+    envolverRender('atualizarAnaliseTempoReal');
+    if (typeof window.renderizarPainel === 'function') window.renderizarPainel();
+    if (typeof window.renderizarHistorico === 'function') window.renderizarHistorico();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(inicializarIsolamento, 150));
+  } else {
+    setTimeout(inicializarIsolamento, 150);
+  }
+
+  document.addEventListener('click', () => {
+    setTimeout(inicializarIsolamento, 200);
+  });
+})();
+</script>
 </body>
 </html>
